@@ -465,6 +465,8 @@ export default function ChatPage() {
       let buffer = ''
       let chunkCount = 0
       let totalChars = 0
+      let inThinkBlock = false  // track think tag state across chunks
+      let thinkBuffer = ''      // accumulate think content to discard
 
       console.log('[Chat] Starting stream parse, status:', res.status)
 
@@ -485,12 +487,35 @@ export default function ChatPage() {
           try {
             const parsed = JSON.parse(data)
             let delta = parsed.choices?.[0]?.delta?.content || ''
-            
-            // Filter out thinking content if present
-            if (delta.includes('<think>') || delta.includes('</think>')) {
-              delta = delta.replace(/<think>[\s\S]*?<\/think>/g, '')
+            if (!delta) continue
+
+            // Stateful think-tag filtering across streaming chunks
+            let visible = ''
+            let i = 0
+            while (i < delta.length) {
+              if (!inThinkBlock) {
+                const open = delta.indexOf('<think>', i)
+                if (open === -1) {
+                  visible += delta.slice(i)
+                  break
+                }
+                visible += delta.slice(i, open)
+                inThinkBlock = true
+                thinkBuffer = ''
+                i = open + 7
+              } else {
+                const close = delta.indexOf('</think>', i)
+                if (close === -1) {
+                  thinkBuffer += delta.slice(i)
+                  break
+                }
+                inThinkBlock = false
+                thinkBuffer = ''
+                i = close + 8
+              }
             }
-            
+
+            delta = visible
             if (delta) {
               chunkCount++
               totalChars += delta.length
@@ -662,6 +687,7 @@ export default function ChatPage() {
                     >
                       <option value="arcee-ai/trinity-large-preview:free">Trinity Large (free) - 128k context</option>
                       <option value="stepfun/step-3.5-flash:free">Step 3.5 Flash (free) - Fast</option>
+                      <option value="google/gemini-2.0-pro-exp-02-05:free">Gemini 2.0 Pro Experimental (free)</option>
                     </select>
                     <p className="text-xs text-gray-400 dark:text-[#444]">Used when Reasoning mode is ON</p>
                   </div>
