@@ -445,6 +445,7 @@ export default function ChatPage() {
       }
 
       console.log('[Chat] Starting stream parse, status:', res.status)
+      const reader = res.body!.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
       let chunkCount = 0
