@@ -389,20 +389,18 @@ export default function ChatPage() {
       // Use OpenRouter for reasoning mode, otherwise use Sarvam via proxy
       const isReasoning = reasoningMode && openrouterKey
       const endpoint = isReasoning 
-        ? 'https://openrouter.ai/v1/chat/completions'
+        ? '/api/openrouter'
         : '/api/chat'
       
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       let body: Record<string, unknown>
 
       if (isReasoning) {
-        headers['Authorization'] = `Bearer ${openrouterKey}`
-        headers['HTTP-Referer'] = 'https://llmpad.vercel.app'
-        headers['X-Title'] = 'LLMPad'
         body = {
-          model: reasoningModel,
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+          model: reasoningModel,
           temperature,
+          apiKey: openrouterKey,
         }
       } else {
         body = {
