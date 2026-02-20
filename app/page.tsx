@@ -388,6 +388,7 @@ export default function ChatPage() {
     try {
       // Use OpenRouter for reasoning mode, otherwise use Sarvam via proxy
       const isReasoning = reasoningMode && openrouterKey
+      console.log('[Chat] isReasoning:', isReasoning, 'reasoningMode:', reasoningMode, 'openrouterKey exists:', !!openrouterKey)
       const endpoint = isReasoning 
         ? '/api/openrouter'
         : '/api/chat'
