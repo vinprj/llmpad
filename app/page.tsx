@@ -105,6 +105,7 @@ export default function ChatPage() {
   const [temperature, setTemperature] = useState(0.7)
   const [instructions, setInstructions] = useState('')
   const [settingsSaved, setSettingsSaved] = useState(false)
+  const [proxyUrl, setProxyUrl] = useState('')
 
   /* Sidebar */
   const [showSidebar, setShowSidebar] = useState(true)
@@ -139,6 +140,7 @@ export default function ChatPage() {
     const t = localStorage.getItem('sarvam_temp'); if (t) setTemperature(parseFloat(t))
     const s = localStorage.getItem('sarvam_instructions'); if (s) setInstructions(s)
     const cm = localStorage.getItem('sarvam_custom_model'); if (cm) setCustomModel(cm)
+    const pu = localStorage.getItem('llmpad_proxy_url'); if (pu) setProxyUrl(pu)
 
     // Session ID
     let sid = localStorage.getItem('llmpad_session')
@@ -232,6 +234,7 @@ export default function ChatPage() {
     localStorage.setItem('sarvam_temp', temperature.toString())
     localStorage.setItem('sarvam_instructions', instructions)
     localStorage.setItem('sarvam_custom_model', customModel)
+    localStorage.setItem('llmpad_proxy_url', proxyUrl)
     setSettingsSaved(true)
     setTimeout(() => setSettingsSaved(false), 2000)
   }
@@ -263,7 +266,10 @@ export default function ChatPage() {
         ...[...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
       ]
 
-      const res = await fetch('https://api.sarvam.ai/v1/chat/completions', {
+      const baseUrl = proxyUrl.trim()
+        ? proxyUrl.trim().replace(/\/$/, '')
+        : 'https://api.sarvam.ai'
+      const res = await fetch(`${baseUrl}/v1/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -332,7 +338,7 @@ export default function ChatPage() {
         saveConversation(finalMsgs, currentConvIdRef.current, sessionId)
       }
     }
-  }, [input, isStreaming, apiKey, messages, activeModel, temperature, instructions, sessionId, saveConversation])
+  }, [input, isStreaming, apiKey, messages, activeModel, temperature, instructions, sessionId, saveConversation, proxyUrl])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
@@ -491,6 +497,25 @@ export default function ChatPage() {
                     className="w-full bg-gray-100 dark:bg-[#141414] border border-gray-300 dark:border-[#252525] rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#555] focus:outline-none focus:border-[#ff9500]/70 resize-none leading-relaxed"
                   />
                   <p className="text-xs text-gray-400 dark:text-[#444]">Injected as system prompt before every conversation.</p>
+                </div>
+
+                {/* Proxy URL */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">Proxy URL</label>
+                  <input
+                    type="text" value={proxyUrl} onChange={e => setProxyUrl(e.target.value)}
+                    placeholder="https://your-proxy.trycloudflare.com"
+                    className="w-full bg-gray-100 dark:bg-[#141414] border border-gray-300 dark:border-[#252525] rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#555] focus:outline-none focus:border-[#ff9500]/70 transition-colors font-mono"
+                  />
+                  <p className="text-xs text-gray-400 dark:text-[#444]">
+                    Optional. Routes requests through a proxy to bypass CORS or extend timeouts. Leave blank to call the API directly.
+                  </p>
+                  {proxyUrl.trim() && (
+                    <div className="flex items-center gap-1.5 text-xs text-[#ff9500]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#ff9500] inline-block" />
+                      Routing via proxy
+                    </div>
+                  )}
                 </div>
 
               </div>
