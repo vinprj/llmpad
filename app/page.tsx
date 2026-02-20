@@ -271,9 +271,23 @@ export default function ChatPage() {
         signal: abort.signal,
       })
 
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || `HTTP ${res.status}`)
+    if (!res.ok) {
+        const contentType = res.headers.get('content-type') || ''
+        const text = await res.text()
+        
+        // If not streaming, try to parse as JSON error
+        if (!contentType.includes('text/event-stream')) {
+          let msg = text
+          try { const j = JSON.parse(text); msg = j.error?.message || j.message || msg } catch {}
+          throw new Error(msg)
+        }
+        // For streaming errors, still try to parse
+        throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`)
+      }
+
+      const contentType = res.headers.get('content-type') || ''
+      if (!contentType.includes('text/event-stream')) {
+        throw new Error('Expected streaming response but got: ' + contentType)
       }
 
       const reader = res.body!.getReader()
