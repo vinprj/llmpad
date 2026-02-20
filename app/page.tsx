@@ -147,6 +147,9 @@ export default function ChatPage() {
 
   /* Settings */
   const [apiKey, setApiKey] = useState('')
+  const [openrouterKey, setOpenrouterKey] = useState('')
+  const [reasoningModel, setReasoningModel] = useState('arcee-ai/trinity-large-preview:free')
+  const [reasoningMode, setReasoningMode] = useState(false)
   const [model, setModel] = useState('sarvam-m')
   const [customModel, setCustomModel] = useState('')
   const [temperature, setTemperature] = useState(0.7)
@@ -192,6 +195,8 @@ export default function ChatPage() {
     const t = localStorage.getItem('sarvam_temp'); if (t) setTemperature(parseFloat(t))
     const s = localStorage.getItem('sarvam_instructions'); if (s) setInstructions(s)
     const cm = localStorage.getItem('sarvam_custom_model'); if (cm) setCustomModel(cm)
+    const ork = localStorage.getItem('llmpad_openrouter_key'); if (ork) setOpenrouterKey(ork)
+    const rm = localStorage.getItem('llmpad_reasoning_model'); if (rm) setReasoningModel(rm)
     const tl = localStorage.getItem('llmpad_tts_lang'); if (tl) setTtsLanguage(tl)
     const ts = localStorage.getItem('llmpad_tts_speaker'); if (ts) setTtsSpeaker(ts)
 
@@ -287,6 +292,8 @@ export default function ChatPage() {
     localStorage.setItem('sarvam_temp', temperature.toString())
     localStorage.setItem('sarvam_instructions', instructions)
     localStorage.setItem('sarvam_custom_model', customModel)
+    localStorage.setItem('llmpad_openrouter_key', openrouterKey)
+    localStorage.setItem('llmpad_reasoning_model', reasoningModel)
     localStorage.setItem('llmpad_tts_lang', ttsLanguage)
     localStorage.setItem('llmpad_tts_speaker', ttsSpeaker)
     setSettingsSaved(true)
@@ -362,7 +369,7 @@ export default function ChatPage() {
   /* ── Send ── */
   const handleSend = useCallback(async (text?: string) => {
     const content = (text ?? input).trim()
-    if (!content || isStreaming || !apiKey) return
+    if (!content || isStreaming || (!apiKey && !reasoningMode)) return
     setError('')
 
     const userMsg: Message = { id: generateId(), role: 'user', content, timestamp: new Date() }
@@ -379,16 +386,38 @@ export default function ChatPage() {
     let finalMsgs: Message[] = []
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      // Use OpenRouter for reasoning mode, otherwise use Sarvam via proxy
+      const isReasoning = reasoningMode && openrouterKey
+      const endpoint = isReasoning 
+        ? 'https://openrouter.ai/v1/chat/completions'
+        : '/api/chat'
+      
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      let body: Record<string, unknown>
+
+      if (isReasoning) {
+        headers['Authorization'] = `Bearer ${openrouterKey}`
+        headers['HTTP-Referer'] = 'https://llmpad.vercel.app'
+        headers['X-Title'] = 'LLMPad'
+        body = {
+          model: reasoningModel,
+          messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+          temperature,
+        }
+      } else {
+        body = {
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
           model: activeModel,
           temperature,
           systemPrompt: instructions,
           apiKey,
-        }),
+        }
+      }
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
         signal: abort.signal,
       })
 
@@ -469,7 +498,7 @@ export default function ChatPage() {
         saveConversation(finalMsgs, currentConvIdRef.current, sessionId)
       }
     }
-  }, [input, isStreaming, apiKey, messages, activeModel, temperature, instructions, sessionId, saveConversation])
+  }, [input, isStreaming, apiKey, openrouterKey, reasoningModel, reasoningMode, messages, activeModel, temperature, instructions, sessionId, saveConversation])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
@@ -571,14 +600,44 @@ export default function ChatPage() {
 
                 {/* API Key */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">API Key</label>
+                  <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">Sarvam API Key</label>
                   <input
                     type="password" value={apiKey} onChange={e => setApiKey(e.target.value)}
-                    placeholder="Paste your API key"
+                    placeholder="Paste your Sarvam API key"
                     className="w-full bg-gray-100 dark:bg-[#141414] border border-gray-300 dark:border-[#252525] rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#555] focus:outline-none focus:border-[#ff9500]/70 transition-colors font-mono"
                   />
                   {apiKey && <p className="text-xs text-gray-400 dark:text-[#555] font-mono">{maskKey(apiKey)}</p>}
                 </div>
+
+                {/* OpenRouter API Key */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">OpenRouter API Key</label>
+                  <input
+                    type="password" value={openrouterKey} onChange={e => setOpenrouterKey(e.target.value)}
+                    placeholder="For reasoning mode (optional)"
+                    className="w-full bg-gray-100 dark:bg-[#141414] border border-gray-300 dark:border-[#252525] rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#555] focus:outline-none focus:border-[#ff9500]/70 transition-colors font-mono"
+                  />
+                  {openrouterKey && <p className="text-xs text-gray-400 dark:text-[#555] font-mono">{maskKey(openrouterKey)}</p>}
+                  <p className="text-xs text-gray-400 dark:text-[#444]">Get free key at openrouter.ai</p>
+                </div>
+
+                {/* OpenRouter Model */}
+                {openrouterKey && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">Reasoning Model</label>
+                    <select
+                      value={reasoningModel} onChange={e => setReasoningModel(e.target.value)}
+                      className="w-full bg-gray-100 dark:bg-[#141414] border border-gray-300 dark:border-[#252525] rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500]/70 transition-colors cursor-pointer"
+                    >
+                      <option value="arcee-ai/trinity-large-preview:free">Trinity Large (free) - 128k context</option>
+                      <option value="stepfun/step-3.5-flash:free">Step 3.5 Flash (free) - Fast</option>
+                      <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash (free)</option>
+                      <option value="openai/gpt-4o-mini:free">GPT-4o Mini (free)</option>
+                      <option value="anthropic/claude-3-haiku:free">Claude 3 Haiku (free)</option>
+                    </select>
+                    <p className="text-xs text-gray-400 dark:text-[#444]">Used when Reasoning mode is ON</p>
+                  </div>
+                )}
 
                 {/* Model */}
                 <div className="space-y-1.5">
@@ -687,7 +746,7 @@ export default function ChatPage() {
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-[#111] border border-gray-200 dark:border-[#1a1a1a]">
               <span className={`w-1.5 h-1.5 rounded-full ${apiKey ? 'bg-[#ff9500]' : 'bg-gray-300 dark:bg-[#333]'}`} />
               <span className="text-xs font-mono text-gray-500 dark:text-[#777]">
-                {apiKey ? (activeModel || 'select model') : 'no api key'}
+                {reasoningMode && openrouterKey ? reasoningModel : (apiKey ? (activeModel || 'select model') : 'no api key')}
               </span>
             </div>
             {/* Instructions toggle */}
@@ -703,6 +762,27 @@ export default function ChatPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
               </svg>
               Instructions{instructions.trim() ? ' ●' : ''}
+            </button>
+            {/* Reasoning toggle */}
+            <button
+              onClick={() => {
+                if (!openrouterKey) {
+                  setError('Add OpenRouter key in Settings first')
+                  return
+                }
+                setReasoningMode(r => !r)
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                reasoningMode
+                  ? 'bg-purple-100 dark:bg-purple-500/20 border-purple-300 dark:border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-500/30'
+                  : 'bg-gray-100 dark:bg-[#111] border-gray-200 dark:border-[#1a1a1a] text-gray-400 dark:text-[#555] hover:text-gray-600 dark:hover:text-[#888]'
+              }`}
+              title={openrouterKey ? 'Use OpenRouter for longer responses' : 'Add OpenRouter key in Settings'}
+            >
+              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+              </svg>
+              Reason{reasoningMode ? ' ●' : ''}
             </button>
           </div>
 
@@ -755,7 +835,7 @@ export default function ChatPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
                 {STARTERS.map(s => (
-                  <button key={s} onClick={() => handleSend(s)} disabled={!apiKey}
+                  <button key={s} onClick={() => handleSend(s)} disabled={!apiKey && !reasoningMode}
                     className="text-left p-3.5 rounded-xl border border-gray-200 dark:border-[#1f1f1f] hover:border-[#ff9500]/40 text-sm text-gray-600 dark:text-[#888] hover:text-gray-900 dark:hover:text-[#eee] transition-all bg-white dark:bg-[#0c0c0c] hover:bg-gray-50 dark:hover:bg-[#111] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                   >{s}</button>
                 ))}
@@ -863,13 +943,13 @@ export default function ChatPage() {
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder={apiKey ? 'Send a message...' : 'Add API key to start...'}
-                rows={1} disabled={!apiKey || isStreaming}
+                rows={1} disabled={(!apiKey && !reasoningMode) || isStreaming}
                 className="flex-1 bg-transparent text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#444] focus:outline-none resize-none text-base leading-relaxed disabled:opacity-40"
                 style={{ maxHeight: '180px' }}
               />
               <button
                 onClick={isStreaming ? () => abortRef.current?.abort() : () => handleSend()}
-                disabled={!apiKey || (!input.trim() && !isStreaming)}
+                disabled={(!apiKey && !reasoningMode) || (!input.trim() && !isStreaming)}
                 className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
                   isStreaming
                     ? 'bg-red-100 dark:bg-red-500/15 text-red-500 dark:text-red-400 hover:bg-red-200'
