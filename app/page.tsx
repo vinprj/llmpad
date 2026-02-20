@@ -35,7 +35,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={copy}
-      className="text-[10px] text-[#888] hover:text-[#ccc] transition-colors flex items-center gap-1"
+      className="text-xs text-[#888] hover:text-[#ccc] transition-colors flex items-center gap-1"
     >
       {copied ? (
         <><CheckIcon /> copied</>
@@ -73,10 +73,10 @@ function CodeBlock({ language, children }: { language: string; children: string 
   return (
     <div className="relative my-3 rounded-xl overflow-hidden border border-[#1f1f1f]">
       <div className="flex items-center justify-between bg-[#141414] px-4 py-2 border-b border-[#1f1f1f]">
-        <span className="text-[10px] font-mono text-[#555] uppercase tracking-wider">{language || 'code'}</span>
+        <span className="text-xs font-mono text-[#999] uppercase tracking-wider">{language || 'code'}</span>
         <button
           onClick={copy}
-          className="text-[10px] text-[#777] hover:text-[#ff9500] transition-colors flex items-center gap-1 font-mono"
+          className="text-xs text-[#bbb] hover:text-[#ff9500] transition-colors flex items-center gap-1 font-mono"
         >
           {copied ? '✓ copied' : 'copy'}
         </button>
@@ -266,7 +266,7 @@ export default function ChatPage() {
               <span className="font-display text-2xl font-bold text-[#ff9500]">LLM</span>
               <span className="font-display text-2xl font-bold text-[#e0e0e0]">Pad</span>
             </div>
-            <p className="text-[10px] text-[#666] mt-0.5 font-mono tracking-wider">API PLAYGROUND</p>
+            <p className="text-xs text-[#aaa] mt-0.5 font-mono tracking-wider">API PLAYGROUND</p>
           </div>
 
           <div className="mx-5 h-px bg-[#161616] mb-4" />
@@ -274,7 +274,7 @@ export default function ChatPage() {
           <div className="px-5 space-y-5 flex-1">
             {/* API Key */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold text-[#777] uppercase tracking-widest block">
+              <label className="text-xs font-semibold text-[#bbb] uppercase tracking-widest block">
                 API Key
               </label>
               <div className="relative">
@@ -283,23 +283,23 @@ export default function ChatPage() {
                   value={apiKey}
                   onChange={e => setApiKey(e.target.value)}
                   placeholder="Enter your Sarvam API key"
-                  className="w-full bg-[#141414] border border-[#252525] rounded-lg px-3 py-2.5 text-xs text-[#e0e0e0] placeholder-[#555] focus:outline-none focus:border-[#ff9500]/60 transition-colors font-mono"
+                  className="w-full bg-[#141414] border border-[#252525] rounded-lg px-3 py-2.5 text-sm text-[#e0e0e0] placeholder-[#777] focus:outline-none focus:border-[#ff9500]/60 transition-colors font-mono"
                 />
               </div>
               {apiKey && (
-                <p className="text-[10px] text-[#666] font-mono">{maskKey(apiKey)}</p>
+                <p className="text-xs text-[#aaa] font-mono">{maskKey(apiKey)}</p>
               )}
             </div>
 
             {/* Model */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold text-[#777] uppercase tracking-widest block">
+              <label className="text-xs font-semibold text-[#bbb] uppercase tracking-widest block">
                 Model
               </label>
               <select
                 value={model}
                 onChange={e => setModel(e.target.value)}
-                className="w-full bg-[#141414] border border-[#252525] rounded-lg px-3 py-2.5 text-xs text-[#e0e0e0] focus:outline-none focus:border-[#ff9500]/60 transition-colors cursor-pointer"
+                className="w-full bg-[#141414] border border-[#252525] rounded-lg px-3 py-2.5 text-sm text-[#e0e0e0] focus:outline-none focus:border-[#ff9500]/60 transition-colors cursor-pointer"
               >
                 {SARVAM_MODELS.map(m => (
                   <option key={m.id} value={m.id}>
@@ -313,7 +313,7 @@ export default function ChatPage() {
                   value={customModel}
                   onChange={e => setCustomModel(e.target.value)}
                   placeholder="model-id-here"
-                  className="w-full bg-[#141414] border border-[#ff9500]/30 rounded-lg px-3 py-2.5 text-xs text-[#e0e0e0] placeholder-[#555] focus:outline-none focus:border-[#ff9500]/60 transition-colors font-mono mt-1.5"
+                  className="w-full bg-[#141414] border border-[#ff9500]/30 rounded-lg px-3 py-2.5 text-sm text-[#e0e0e0] placeholder-[#777] focus:outline-none focus:border-[#ff9500]/60 transition-colors font-mono mt-1.5"
                 />
               )}
             </div>
@@ -321,7 +321,7 @@ export default function ChatPage() {
             {/* Temperature */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-semibold text-[#777] uppercase tracking-widest">
+                <label className="text-xs font-semibold text-[#bbb] uppercase tracking-widest">
                   Temperature
                 </label>
                 <span className="text-xs font-mono text-[#ff9500] tabular-nums">
@@ -337,7 +337,7 @@ export default function ChatPage() {
                 onChange={e => setTemperature(parseFloat(e.target.value))}
                 className="w-full h-1 rounded-full cursor-pointer"
               />
-              <div className="flex justify-between text-[9px] text-[#666] uppercase tracking-wider">
+              <div className="flex justify-between text-xs text-[#aaa] uppercase tracking-wider">
                 <span>Precise</span>
                 <span>Balanced</span>
                 <span>Creative</span>
@@ -346,7 +346,7 @@ export default function ChatPage() {
 
             {/* System Prompt */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold text-[#777] uppercase tracking-widest block">
+              <label className="text-xs font-semibold text-[#bbb] uppercase tracking-widest block">
                 System Prompt
               </label>
               <textarea
@@ -354,7 +354,7 @@ export default function ChatPage() {
                 onChange={e => setSystemPrompt(e.target.value)}
                 placeholder="You are a helpful assistant..."
                 rows={4}
-                className="w-full bg-[#141414] border border-[#252525] rounded-lg px-3 py-2.5 text-xs text-[#e0e0e0] placeholder-[#555] focus:outline-none focus:border-[#ff9500]/60 transition-colors resize-none leading-relaxed"
+                className="w-full bg-[#141414] border border-[#252525] rounded-lg px-3 py-2.5 text-sm text-[#e0e0e0] placeholder-[#777] focus:outline-none focus:border-[#ff9500]/60 transition-colors resize-none leading-relaxed"
               />
             </div>
           </div>
@@ -363,7 +363,7 @@ export default function ChatPage() {
           <div className="px-5 mt-5">
             <button
               onClick={saveSettings}
-              className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${
                 settingsSaved
                   ? 'bg-green-500/20 text-green-400 border border-green-500/30'
                   : 'bg-[#ff9500] text-black hover:bg-[#ffad33]'
@@ -372,7 +372,7 @@ export default function ChatPage() {
               {settingsSaved ? '✓ Saved' : 'Save Settings'}
             </button>
 
-            <p className="text-center text-[10px] text-[#555] mt-3">
+            <p className="text-center text-xs text-[#999] mt-3">
               Get your API key from your provider&apos;s dashboard
             </p>
           </div>
@@ -386,7 +386,7 @@ export default function ChatPage() {
         <header className="flex items-center justify-between px-4 py-3 border-b border-[#1f1f1f] flex-shrink-0">
           <button
             onClick={() => setShowSettings(s => !s)}
-            className="p-2 rounded-lg hover:bg-[#111] transition-colors text-[#777] hover:text-[#888]"
+            className="p-2 rounded-lg hover:bg-[#111] transition-colors text-[#bbb] hover:text-[#ddd]"
             title="Toggle sidebar"
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -397,14 +397,14 @@ export default function ChatPage() {
           {/* Status pill */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#141414] border border-[#1a1a1a]">
             <span className={`w-1.5 h-1.5 rounded-full ${apiKey ? 'bg-[#ff9500]' : 'bg-[#2a2a2a]'}`} />
-            <span className="text-[10px] font-mono text-[#777]">
+            <span className="text-xs font-mono text-[#bbb]">
               {apiKey ? activeModel || 'select model' : 'no api key'}
             </span>
           </div>
 
           <button
             onClick={clearChat}
-            className="p-2 rounded-lg hover:bg-[#111] transition-colors text-[#777] hover:text-[#888]"
+            className="p-2 rounded-lg hover:bg-[#111] transition-colors text-[#bbb] hover:text-[#ddd]"
             title="Clear chat"
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -424,7 +424,7 @@ export default function ChatPage() {
                 <h2 className="font-display text-2xl font-bold text-[#e0e0e0]">
                   LLMPad
                 </h2>
-                <p className="text-sm text-[#777] mt-2 leading-relaxed">
+                <p className="text-sm text-[#bbb] mt-2 leading-relaxed">
                   {apiKey
                     ? 'Start a conversation below'
                     : 'Add your API key in the sidebar to begin'}
@@ -437,7 +437,7 @@ export default function ChatPage() {
                     key={s}
                     onClick={() => handleSend(s)}
                     disabled={!apiKey}
-                    className="text-left p-3.5 rounded-xl border border-[#252525] hover:border-[#ff9500]/30 text-xs text-[#888] hover:text-[#eee] transition-all bg-[#0c0c0c] hover:bg-[#111] disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="text-left p-3.5 rounded-xl border border-[#252525] hover:border-[#ff9500]/30 text-sm text-[#888] hover:text-[#eee] transition-all bg-[#0c0c0c] hover:bg-[#111] disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     {s}
                   </button>
@@ -460,11 +460,11 @@ export default function ChatPage() {
 
                   <div className={`group ${msg.role === 'user' ? 'max-w-[70%]' : 'flex-1 min-w-0'}`}>
                     {msg.role === 'user' ? (
-                      <div className="bg-[#ff9500] text-black rounded-2xl rounded-tr-sm px-4 py-3 text-sm leading-relaxed font-medium whitespace-pre-wrap">
+                      <div className="bg-[#ff9500] text-black rounded-2xl rounded-tr-sm px-4 py-3 text-base leading-relaxed font-medium whitespace-pre-wrap">
                         {msg.content}
                       </div>
                     ) : (
-                      <div className="text-sm leading-relaxed text-[#d0d0d0]">
+                      <div className="text-base leading-relaxed text-[#d0d0d0]">
                         {msg.content ? (
                           <div className="prose prose-invert prose-sm max-w-none
                             prose-p:text-[#d0d0d0] prose-p:leading-relaxed
@@ -483,7 +483,7 @@ export default function ChatPage() {
                                   const inline = !match && !className
                                   if (inline) {
                                     return (
-                                      <code className="bg-[#1a1a1a] text-[#ff9500] px-1.5 py-0.5 rounded text-[11px] font-mono" {...props}>
+                                      <code className="bg-[#1a1a1a] text-[#ff9500] px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
                                         {children}
                                       </code>
                                     )
@@ -528,7 +528,7 @@ export default function ChatPage() {
 
                     {/* Meta row */}
                     <div className={`flex items-center gap-2.5 mt-1.5 px-1 opacity-0 group-hover:opacity-100 transition-opacity ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <span className="text-[10px] text-[#666]">
+                      <span className="text-xs text-[#aaa]">
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {msg.content && <CopyButton text={msg.content} />}
@@ -537,7 +537,7 @@ export default function ChatPage() {
 
                   {/* User avatar */}
                   {msg.role === 'user' && (
-                    <div className="w-7 h-7 rounded-lg bg-[#1a1a1a] border border-[#222] flex items-center justify-center flex-shrink-0 mt-0.5 text-[11px] font-semibold text-[#555]">
+                    <div className="w-7 h-7 rounded-lg bg-[#1a1a1a] border border-[#222] flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-semibold text-[#999]">
                       V
                     </div>
                   )}
@@ -561,7 +561,7 @@ export default function ChatPage() {
         <div className="border-t border-[#222] p-4 flex-shrink-0">
           <div className="max-w-3xl mx-auto">
             {!apiKey && (
-              <p className="text-center text-[11px] text-[#666] mb-3">
+              <p className="text-center text-xs text-[#aaa] mb-3">
                 ⚡ Enter your Sarvam API key in the sidebar to start chatting
               </p>
             )}
@@ -581,7 +581,7 @@ export default function ChatPage() {
                 placeholder={apiKey ? 'Send a message...' : 'Add API key to start...'}
                 rows={1}
                 disabled={!apiKey || isStreaming}
-                className="flex-1 bg-transparent text-[#e0e0e0] placeholder-[#555] focus:outline-none resize-none text-sm leading-relaxed disabled:opacity-30"
+                className="flex-1 bg-transparent text-[#e0e0e0] placeholder-[#777] focus:outline-none resize-none text-base leading-relaxed disabled:opacity-30"
                 style={{ maxHeight: '180px' }}
               />
               <button
@@ -605,7 +605,7 @@ export default function ChatPage() {
               </button>
             </div>
 
-            <p className="text-center text-[10px] text-[#555] mt-2">
+            <p className="text-center text-xs text-[#999] mt-2">
               Enter to send · Shift+Enter for new line · Click ■ to stop
             </p>
           </div>
