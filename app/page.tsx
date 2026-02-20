@@ -92,7 +92,7 @@ function SpeakButton({ text, language, speaker, isPlaying, onClick }: { text: st
   return (
     <button
       onClick={onClick}
-      disabled={!text || isPlaying}
+      disabled={!text}
       className="text-xs text-gray-400 dark:text-[#666] hover:text-[#ff9500] dark:hover:text-[#ff9500] transition-colors flex items-center gap-1 disabled:opacity-40"
       title="Speak"
     >
