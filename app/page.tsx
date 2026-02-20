@@ -88,7 +88,7 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-function SpeakButton({ text, language, speaker, isPlaying, onClick }: { text: string; language: string; speaker: string; isPlaying: boolean; onClick: () => void }) {
+function SpeakButton({ msgId, text, language, speaker, isPlaying, onClick }: { msgId: string; text: string; language: string; speaker: string; isPlaying: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -170,7 +170,7 @@ export default function ChatPage() {
   /* TTS */
   const [ttsLanguage, setTtsLanguage] = useState('en-IN')
   const [ttsSpeaker, setTtsSpeaker] = useState('shubh')
-  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   /* Refs */
@@ -296,20 +296,26 @@ export default function ChatPage() {
   const maskKey = (k: string) => k.length > 10 ? `${k.slice(0, 6)}${'•'.repeat(8)}${k.slice(-4)}` : '••••••••••'
 
   /* ── TTS ── */
-  const handleSpeak = useCallback(async (text: string) => {
-    if (isSpeaking) {
-      // Stop speaking
+  const handleSpeak = useCallback(async (msgId: string, text: string) => {
+    // If already speaking a different message, stop it first
+    if (audioRef.current && speakingMsgId && speakingMsgId !== msgId) {
+      audioRef.current.pause()
+      audioRef.current = null
+      setSpeakingMsgId(null)
+    }
+
+    // If clicking the same message that's playing, stop it
+    if (speakingMsgId === msgId) {
       if (audioRef.current) {
         audioRef.current.pause()
         audioRef.current = null
       }
-      setIsSpeaking(false)
+      setSpeakingMsgId(null)
       return
     }
 
     if (!apiKey || !text) return
 
-    setIsSpeaking(true)
     setError('')
 
     try {
@@ -329,17 +335,19 @@ export default function ChatPage() {
         throw new Error('No audio returned')
       }
 
+      setSpeakingMsgId(msgId)
+      
       // Play audio
       const audio = new Audio(`data:audio/mp3;base64,${data.audio}`)
       audioRef.current = audio
       
       audio.onended = () => {
-        setIsSpeaking(false)
+        setSpeakingMsgId(null)
         audioRef.current = null
       }
       
       audio.onerror = () => {
-        setIsSpeaking(false)
+        setSpeakingMsgId(null)
         setError('Audio playback failed')
         audioRef.current = null
       }
@@ -347,9 +355,9 @@ export default function ChatPage() {
       await audio.play()
     } catch (err: any) {
       setError(err.message || 'TTS failed')
-      setIsSpeaking(false)
+      setSpeakingMsgId(null)
     }
-  }, [apiKey, ttsLanguage, ttsSpeaker, isSpeaking])
+  }, [apiKey, ttsLanguage, ttsSpeaker, speakingMsgId])
 
   /* ── Send ── */
   const handleSend = useCallback(async (text?: string) => {
@@ -806,11 +814,12 @@ export default function ChatPage() {
                         <>
                           <CopyButton text={msg.content} />
                           <SpeakButton
+                            msgId={msg.id}
                             text={msg.content}
                             language={ttsLanguage}
                             speaker={ttsSpeaker}
-                            isPlaying={isSpeaking}
-                            onClick={() => handleSpeak(msg.content)}
+                            isPlaying={speakingMsgId === msg.id}
+                            onClick={() => handleSpeak(msg.id, msg.content)}
                           />
                         </>
                       )}
