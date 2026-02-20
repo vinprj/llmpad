@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { supabase, type DBConversation } from './lib/supabase'
+import type { User, Session } from '@supabase/supabase-js'
 
 /* ── Types ── */
 interface Message {
@@ -185,6 +186,16 @@ export default function ChatPage() {
   /* Theme */
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
+  /* Auth */
+  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
+  const [authEmail, setAuthEmail] = useState('')
+  const [authPassword, setAuthPassword] = useState('')
+  const [authError, setAuthError] = useState('')
+  const [authLoadingSubmit, setAuthLoadingSubmit] = useState(false)
+
   /* TTS */
   const [ttsLanguage, setTtsLanguage] = useState('en-IN')
   const [ttsSpeaker, setTtsSpeaker] = useState('shubh')
@@ -219,6 +230,20 @@ export default function ChatPage() {
     let sid = localStorage.getItem('llmpad_session')
     if (!sid) { sid = generateId(); localStorage.setItem('llmpad_session', sid) }
     setSessionId(sid)
+
+    // Check Supabase auth
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      setAuthLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   /* ── Load conversations when sessionId is ready ── */
@@ -316,6 +341,34 @@ export default function ChatPage() {
   }
 
   const maskKey = (k: string) => k.length > 10 ? `${k.slice(0, 6)}${'•'.repeat(8)}${k.slice(-4)}` : '••••••••••'
+
+  /* ── Auth ── */
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAuthError('')
+    setAuthLoadingSubmit(true)
+
+    try {
+      if (authMode === 'signup') {
+        const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword })
+        if (error) throw error
+        setAuthError('Check your email for the confirmation link!')
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword })
+        if (error) throw error
+      }
+    } catch (err: any) {
+      setAuthError(err.message || 'Authentication failed')
+    } finally {
+      setAuthLoadingSubmit(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    setSession(null)
+  }
 
   /* ── TTS ── */
   const handleSpeak = useCallback(async (msgId: string, text: string) => {
@@ -561,6 +614,95 @@ export default function ChatPage() {
   }, [])
 
   /* ══════════════ RENDER ══════════════ */
+  
+  // Auth loading
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-[#080808]">
+        <div className="animate-pulse text-gray-400">Loading...</div>
+      </div>
+    )
+  }
+
+  // Auth modal (shown when not logged in)
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-[#080808] px-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="flex items-baseline justify-center gap-1 mb-2">
+              <span className="font-display text-3xl font-bold text-[#ff9500]">LLM</span>
+              <span className="font-display text-3xl font-bold text-gray-900 dark:text-[#e0e0e0]">Pad</span>
+            </div>
+            <p className="text-gray-500 dark:text-[#666]">Sign in to save your conversations</p>
+          </div>
+          
+          <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-6 shadow-lg">
+            <div className="flex mb-6 bg-gray-100 dark:bg-[#1a1a1a] rounded-lg p-1">
+              <button
+                onClick={() => setAuthMode('login')}
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${authMode === 'login' ? 'bg-white dark:bg-[#222] text-gray-900 dark:text-[#e0e0e0] shadow-sm' : 'text-gray-500 dark:text-[#666]'}`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setAuthMode('signup')}
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${authMode === 'signup' ? 'bg-white dark:bg-[#222] text-gray-900 dark:text-[#e0e0e0] shadow-sm' : 'text-gray-500 dark:text-[#666]'}`}
+              >
+                Sign Up
+              </button>
+            </div>
+
+            <form onSubmit={handleAuth} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-[#666] mb-1">Email</label>
+                <input
+                  type="email"
+                  value={authEmail}
+                  onChange={e => setAuthEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-lg text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500] transition-colors"
+                  placeholder="you@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-[#666] mb-1">Password</label>
+                <input
+                  type="password"
+                  value={authPassword}
+                  onChange={e => setAuthPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-lg text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500] transition-colors"
+                  placeholder="••••••••"
+                />
+              </div>
+              
+              {authError && (
+                <div className={`text-sm p-3 rounded-lg ${authError.includes('Check your email') ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
+                  {authError}
+                </div>
+              )}
+              
+              <button
+                type="submit"
+                disabled={authLoadingSubmit}
+                className="w-full py-2.5 bg-[#ff9500] hover:bg-[#e68600] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+              >
+                {authLoadingSubmit ? 'Please wait...' : authMode === 'login' ? 'Sign In' : 'Create Account'}
+              </button>
+            </form>
+          </div>
+          
+          <p className="text-center text-xs text-gray-400 dark:text-[#555] mt-6">
+            Powered by Supabase Auth
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Main app (logged in)
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-[#080808] text-gray-900 dark:text-[#e0e0e0] font-sans overflow-hidden transition-colors duration-200">
 
@@ -577,13 +719,37 @@ export default function ChatPage() {
               <span className="font-display text-xl font-bold text-[#ff9500]">LLM</span>
               <span className="font-display text-xl font-bold text-gray-900 dark:text-[#e0e0e0]">Pad</span>
             </div>
-            <button
-              onClick={newConversation}
-              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-[#ff9500]/10 text-[#ff9500] hover:bg-[#ff9500]/20 border border-[#ff9500]/20 transition-all"
-            >
-              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" d="M12 5v14M5 12h14"/></svg>
-              New
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={newConversation}
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-[#ff9500]/10 text-[#ff9500] hover:bg-[#ff9500]/20 border border-[#ff9500]/20 transition-all"
+              >
+                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" d="M12 5v14M5 12h14"/></svg>
+                New
+              </button>
+            </div>
+          </div>
+
+          {/* User Info */}
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-[#141414] flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-[#ff9500]/20 flex items-center justify-center text-[#ff9500] text-sm font-medium flex-shrink-0">
+                  {user.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-[#e0e0e0] truncate">{user.email?.split('@')[0]}</p>
+                  <p className="text-xs text-gray-400 dark:text-[#555] truncate">{user.email}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-xs text-gray-400 hover:text-red-500 dark:text-[#555] dark:hover:text-red-400 transition-colors flex-shrink-0"
+                title="Sign out"
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+              </button>
+            </div>
           </div>
 
           {/* Tabs */}
