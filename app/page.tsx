@@ -27,6 +27,37 @@ const STARTERS = [
   'Debug this: print("hello" + 42)',
 ]
 
+const TTS_LANGUAGES = [
+  { code: 'en-IN', label: 'English (India)' },
+  { code: 'hi-IN', label: 'Hindi' },
+  { code: 'ta-IN', label: 'Tamil' },
+  { code: 'te-IN', label: 'Telugu' },
+  { code: 'kn-IN', label: 'Kannada' },
+  { code: 'ml-IN', label: 'Malayalam' },
+  { code: 'mr-IN', label: 'Marathi' },
+  { code: 'gu-IN', label: 'Gujarati' },
+  { code: 'pa-IN', label: 'Punjabi' },
+  { code: 'bn-IN', label: 'Bengali' },
+]
+
+const TTS_SPEAKERS = [
+  { id: 'shubh', label: 'Shubh (M)', gender: 'male' },
+  { id: 'aditya', label: 'Aditya (M)', gender: 'male' },
+  { id: 'rahul', label: 'Rahul (M)', gender: 'male' },
+  { id: 'rohan', label: 'Rohan (M)', gender: 'male' },
+  { id: 'amit', label: 'Amit (M)', gender: 'male' },
+  { id: 'dev', label: 'Dev (M)', gender: 'male' },
+  { id: 'ritu', label: 'Ritu (F)', gender: 'female' },
+  { id: 'priya', label: 'Priya (F)', gender: 'female' },
+  { id: 'neha', label: 'Neha (F)', gender: 'female' },
+  { id: 'pooja', label: 'Pooja (F)', gender: 'female' },
+  { id: 'simran', label: 'Simran (F)', gender: 'female' },
+  { id: 'kavya', label: 'Kavya (F)', gender: 'female' },
+  { id: 'ishita', label: 'Ishita (F)', gender: 'female' },
+  { id: 'shreya', label: 'Shreya (F)', gender: 'female' },
+  { id: 'roopa', label: 'Roopa (F)', gender: 'female' },
+]
+
 /* ── Helpers ── */
 function generateId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36)
@@ -53,6 +84,22 @@ function CopyButton({ text }: { text: string }) {
       {copied
         ? <><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>copied</>
         : <><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>copy</>}
+    </button>
+  )
+}
+
+function SpeakButton({ text, language, speaker, isPlaying, onClick }: { text: string; language: string; speaker: string; isPlaying: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={!text || isPlaying}
+      className="text-xs text-gray-400 dark:text-[#666] hover:text-[#ff9500] dark:hover:text-[#ff9500] transition-colors flex items-center gap-1 disabled:opacity-40"
+      title="Speak"
+    >
+      {isPlaying
+        ? <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24"><rect x="5" y="2" width="4" height="20" rx="1" /><rect x="15" y="6" width="4" height="12" rx="1" /></svg>
+        : <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M3 10v4c0 1.1.9 2 2 2h2a2 2 0 002-2v-2c0-1.1.9-2 2-2h2a2 2 0 002-2v-4a2 2 0 00-2-2H7a2 2 0 00-2 2v4z" /><path d="M8 12a3 3 0 000 6c0 1.66 1.34 3 3 3s3-1.34 3-3" /></svg>}
+      {isPlaying ? 'stop' : 'speak'}
     </button>
   )
 }
@@ -120,6 +167,12 @@ export default function ChatPage() {
   /* Theme */
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
+  /* TTS */
+  const [ttsLanguage, setTtsLanguage] = useState('en-IN')
+  const [ttsSpeaker, setTtsSpeaker] = useState('shubh')
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
   /* Refs */
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -139,6 +192,8 @@ export default function ChatPage() {
     const t = localStorage.getItem('sarvam_temp'); if (t) setTemperature(parseFloat(t))
     const s = localStorage.getItem('sarvam_instructions'); if (s) setInstructions(s)
     const cm = localStorage.getItem('sarvam_custom_model'); if (cm) setCustomModel(cm)
+    const tl = localStorage.getItem('llmpad_tts_lang'); if (tl) setTtsLanguage(tl)
+    const ts = localStorage.getItem('llmpad_tts_speaker'); if (ts) setTtsSpeaker(ts)
 
     // Session ID
     let sid = localStorage.getItem('llmpad_session')
@@ -232,11 +287,69 @@ export default function ChatPage() {
     localStorage.setItem('sarvam_temp', temperature.toString())
     localStorage.setItem('sarvam_instructions', instructions)
     localStorage.setItem('sarvam_custom_model', customModel)
+    localStorage.setItem('llmpad_tts_lang', ttsLanguage)
+    localStorage.setItem('llmpad_tts_speaker', ttsSpeaker)
     setSettingsSaved(true)
     setTimeout(() => setSettingsSaved(false), 2000)
   }
 
   const maskKey = (k: string) => k.length > 10 ? `${k.slice(0, 6)}${'•'.repeat(8)}${k.slice(-4)}` : '••••••••••'
+
+  /* ── TTS ── */
+  const handleSpeak = useCallback(async (text: string) => {
+    if (isSpeaking) {
+      // Stop speaking
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+      setIsSpeaking(false)
+      return
+    }
+
+    if (!apiKey || !text) return
+
+    setIsSpeaking(true)
+    setError('')
+
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, language: ttsLanguage, speaker: ttsSpeaker, apiKey }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'TTS failed')
+      }
+
+      const data = await res.json()
+      if (!data.audio) {
+        throw new Error('No audio returned')
+      }
+
+      // Play audio
+      const audio = new Audio(`data:audio/mp3;base64,${data.audio}`)
+      audioRef.current = audio
+      
+      audio.onended = () => {
+        setIsSpeaking(false)
+        audioRef.current = null
+      }
+      
+      audio.onerror = () => {
+        setIsSpeaking(false)
+        setError('Audio playback failed')
+        audioRef.current = null
+      }
+
+      await audio.play()
+    } catch (err: any) {
+      setError(err.message || 'TTS failed')
+      setIsSpeaking(false)
+    }
+  }, [apiKey, ttsLanguage, ttsSpeaker, isSpeaking])
 
   /* ── Send ── */
   const handleSend = useCallback(async (text?: string) => {
@@ -509,6 +622,26 @@ export default function ChatPage() {
                   <p className="text-xs text-gray-400 dark:text-[#444]">Injected as system prompt before every conversation.</p>
                 </div>
 
+                {/* TTS Voice */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">TTS Voice</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <select
+                      value={ttsLanguage} onChange={e => setTtsLanguage(e.target.value)}
+                      className="bg-gray-100 dark:bg-[#141414] border border-gray-300 dark:border-[#252525] rounded-lg px-2 py-2 text-xs text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500]/70 cursor-pointer"
+                    >
+                      {TTS_LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
+                    </select>
+                    <select
+                      value={ttsSpeaker} onChange={e => setTtsSpeaker(e.target.value)}
+                      className="bg-gray-100 dark:bg-[#141414] border border-gray-300 dark:border-[#252525] rounded-lg px-2 py-2 text-xs text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500]/70 cursor-pointer"
+                    >
+                      {TTS_SPEAKERS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                    </select>
+                  </div>
+                  <p className="text-xs text-gray-400 dark:text-[#444]">Voice for text-to-speech.</p>
+                </div>
+
               </div>
 
               {/* Save */}
@@ -669,7 +802,18 @@ export default function ChatPage() {
                       <span className="text-xs text-gray-400 dark:text-[#555]">
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      {msg.content && <CopyButton text={msg.content} />}
+                      {msg.content && (
+                        <>
+                          <CopyButton text={msg.content} />
+                          <SpeakButton
+                            text={msg.content}
+                            language={ttsLanguage}
+                            speaker={ttsSpeaker}
+                            isPlaying={isSpeaking}
+                            onClick={() => handleSpeak(msg.content)}
+                          />
+                        </>
+                      )}
                     </div>
                   </div>
                   {msg.role === 'user' && (
