@@ -277,6 +277,7 @@ export default function ChatPage() {
         
         // If not streaming, try to parse as JSON error
         if (!contentType.includes('text/event-stream')) {
+          console.log('[Chat] Non-streaming response, content-type:', contentType, 'body:', text.slice(0, 300))
           let msg = text
           try { const j = JSON.parse(text); msg = j.error?.message || j.message || msg } catch {}
           throw new Error(msg)
@@ -290,9 +291,13 @@ export default function ChatPage() {
         throw new Error('Expected streaming response but got: ' + contentType)
       }
 
-      const reader = res.body!.getReader()
+    const reader = res.body!.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
+      let chunkCount = 0
+      let totalChars = 0
+
+      console.log('[Chat] Starting stream parse, status:', res.status)
 
       while (true) {
         const { done, value } = await reader.read()
@@ -304,11 +309,16 @@ export default function ChatPage() {
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
           const data = line.slice(6).trim()
-          if (data === '[DONE]') continue
+          if (data === '[DONE]') {
+            console.log('[Chat] Stream done, chunks:', chunkCount, 'chars:', totalChars)
+            continue
+          }
           try {
             const parsed = JSON.parse(data)
             const delta = parsed.choices?.[0]?.delta?.content || ''
             if (delta) {
+              chunkCount++
+              totalChars += delta.length
               setMessages(prev => {
                 const updated = [...prev]
                 const last = { ...updated[updated.length - 1] }
@@ -322,6 +332,7 @@ export default function ChatPage() {
         }
       }
     } catch (err: any) {
+      console.log('[Chat] Error:', err.message, err.name)
       if (err.name !== 'AbortError') {
         setError(err.message || 'Request failed')
         setMessages(prev => {
