@@ -439,10 +439,12 @@ export default function ChatPage() {
 
       const contentType = res.headers.get('content-type') || ''
       if (!contentType.includes('text/event-stream')) {
+        const text = await res.text()
+        console.log('[Chat] Not streaming, content-type:', contentType, 'body:', text.slice(0, 500))
         throw new Error('Expected streaming response but got: ' + contentType)
       }
 
-    const reader = res.body!.getReader()
+      console.log('[Chat] Starting stream parse, status:', res.status)
       const decoder = new TextDecoder()
       let buffer = ''
       let chunkCount = 0
@@ -466,7 +468,13 @@ export default function ChatPage() {
           }
           try {
             const parsed = JSON.parse(data)
-            const delta = parsed.choices?.[0]?.delta?.content || ''
+            let delta = parsed.choices?.[0]?.delta?.content || ''
+            
+            // Filter out thinking content if present
+            if (delta.includes('<think>') || delta.includes('</think>')) {
+              delta = delta.replace(/<think>[\s\S]*?<\/think>/g, '')
+            }
+            
             if (delta) {
               chunkCount++
               totalChars += delta.length
@@ -483,7 +491,7 @@ export default function ChatPage() {
         }
       }
     } catch (err: any) {
-      console.log('[Chat] Error:', err.message, err.name)
+      console.log('[Chat] Error:', err.message, err.name, err.stack)
       if (err.name !== 'AbortError') {
         setError(err.message || 'Request failed')
         setMessages(prev => {
