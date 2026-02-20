@@ -419,6 +419,8 @@ export default function ChatPage() {
         signal: abort.signal,
       })
 
+      console.log('[Chat] Fetch response:', res.status, res.statusText)
+
     if (!res.ok) {
         const contentType = res.headers.get('content-type') || ''
         const text = await res.text()
@@ -629,9 +631,6 @@ export default function ChatPage() {
                     >
                       <option value="arcee-ai/trinity-large-preview:free">Trinity Large (free) - 128k context</option>
                       <option value="stepfun/step-3.5-flash:free">Step 3.5 Flash (free) - Fast</option>
-                      <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash (free)</option>
-                      <option value="openai/gpt-4o-mini:free">GPT-4o Mini (free)</option>
-                      <option value="anthropic/claude-3-haiku:free">Claude 3 Haiku (free)</option>
                     </select>
                     <p className="text-xs text-gray-400 dark:text-[#444]">Used when Reasoning mode is ON</p>
                   </div>
