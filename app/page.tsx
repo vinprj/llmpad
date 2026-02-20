@@ -594,7 +594,7 @@ export default function ChatPage() {
                 style={{ maxHeight: '180px' }}
               />
               <button
-                onClick={isStreaming ? stopStreaming : handleSend}
+                onClick={isStreaming ? stopStreaming : () => handleSend()}
                 disabled={!apiKey || (!input.trim() && !isStreaming)}
                 className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
                   isStreaming
