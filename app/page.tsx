@@ -687,7 +687,6 @@ export default function ChatPage() {
                     >
                       <option value="arcee-ai/trinity-large-preview:free">Trinity Large (free) - 128k context</option>
                       <option value="stepfun/step-3.5-flash:free">Step 3.5 Flash (free) - Fast</option>
-                      <option value="google/gemini-2.0-pro-exp-02-05:free">Gemini 2.0 Pro Experimental (free)</option>
                     </select>
                     <p className="text-xs text-gray-400 dark:text-[#444]">Used when Reasoning mode is ON</p>
                   </div>

@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   console.log(`[OpenRouter] Model: ${model}, Messages: ${messages?.length || 0}, Temp: ${temperature}`)
 
   try {
-    const response = await fetch('https://openrouter.ai/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
