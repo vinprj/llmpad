@@ -258,22 +258,31 @@ export default function ChatPage() {
     let finalMsgs: Message[] = []
 
     try {
-      const res = await fetch('/api/chat', {
+      const allMessages = [
+        ...(instructions?.trim() ? [{ role: 'system', content: instructions.trim() }] : []),
+        ...[...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+      ]
+
+      const res = await fetch('https://api.sarvam.ai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
         body: JSON.stringify({
-          messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
           model: activeModel,
+          messages: allMessages,
           temperature,
-          systemPrompt: instructions,
-          apiKey,
+          stream: true,
         }),
         signal: abort.signal,
       })
 
       if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || `HTTP ${res.status}`)
+        const text = await res.text()
+        let msg = `HTTP ${res.status}`
+        try { const j = JSON.parse(text); msg = j.error?.message || j.message || msg } catch {}
+        throw new Error(msg)
       }
 
       const reader = res.body!.getReader()
