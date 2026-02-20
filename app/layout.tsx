@@ -21,8 +21,8 @@ const mono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Sarvam Chat',
-  description: "India's Sovereign LLM Playground",
+  title: 'LLMPad',
+  description: 'LLM API Playground — test any OpenAI-compatible model',
   icons: { icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>' },
 }
 
