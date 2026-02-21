@@ -10,8 +10,10 @@ export async function POST(req: NextRequest) {
 
   const { messages, model, temperature, systemPrompt, apiKey } = await req.json()
 
-  if (!apiKey) {
-    console.log('[API] Missing API key')
+  // Use server-side API key from environment if not provided by client
+  const sarvamKey = apiKey || process.env.SARVAM_API_KEY
+  if (!sarvamKey) {
+    console.log('[API] Missing API key (client-provided and server env missing)')
     return NextResponse.json({ error: 'API key is required' }, { status: 401 })
   }
   if (!model) {
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
     response = await fetch('https://api.sarvam.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${sarvamKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

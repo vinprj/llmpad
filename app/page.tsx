@@ -627,7 +627,7 @@ export default function ChatPage() {
 
   const handleSend = useCallback(async (text?: string) => {
     const content = (text ?? input).trim()
-    if (!content || isStreaming || (!apiKey && !reasoningMode)) return
+    if (!content || isStreaming) return
 
     // Auth gate: prompt sign-in after first message for unauthenticated users
     if (!user) {
@@ -1559,7 +1559,7 @@ export default function ChatPage() {
                   e.target.style.height = Math.min(e.target.scrollHeight, 180) + 'px'
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder={apiKey ? 'Send a message...' : 'Add API key to start...'}
+                placeholder='Send a message...'
                 rows={1} disabled={(!apiKey && !reasoningMode) || isStreaming || isProcessingVision}
                 className="flex-1 bg-transparent text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#666] focus:outline-none resize-none text-base leading-relaxed py-2.5 disabled:opacity-50"
                 style={{ maxHeight: '180px', minHeight: '44px' }}

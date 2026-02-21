@@ -5,7 +5,9 @@ export const maxDuration = 60
 export async function POST(req: NextRequest) {
   const { messages, model, temperature, apiKey } = await req.json()
 
-  if (!apiKey) {
+  // Use server-side API key from environment if not provided by client
+  const openrouterKey = apiKey || process.env.OPENROUTER_API_KEY
+  if (!openrouterKey) {
     return NextResponse.json({ error: 'API key is required' }, { status: 401 })
   }
   if (!model) {
@@ -18,7 +20,7 @@ export async function POST(req: NextRequest) {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${openrouterKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://llmpad.vercel.app',
         'X-Title': 'LLMPad',
