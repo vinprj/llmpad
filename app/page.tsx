@@ -566,6 +566,12 @@ export default function ChatPage() {
     // Process attachment through vision if present
     let visionContext = ''
     if (uploadedFile) {
+      // Need Sarvam API key for vision processing
+      if (!apiKey) {
+        setVisionError('Sarvam API key required for vision. Add it in Settings.')
+        return
+      }
+      
       setIsProcessingVision(true)
       try {
         const formData = new FormData()
@@ -617,6 +623,7 @@ export default function ChatPage() {
       let body: Record<string, unknown>
 
       if (isReasoning) {
+        console.log('[Chat] Sending to OpenRouter, userMsg content:', userMsg.content.slice(0, 200))
         body = {
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
           model: reasoningModel,
@@ -624,6 +631,7 @@ export default function ChatPage() {
           apiKey: openrouterKey,
         }
       } else {
+        console.log('[Chat] Sending to Sarvam, userMsg content:', userMsg.content.slice(0, 200))
         body = {
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
           model: activeModel,
