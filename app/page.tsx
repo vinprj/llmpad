@@ -1426,7 +1426,6 @@ export default function ChatPage() {
                     >{s}</button>
                   ))}
                 </div>
-                <p className="text-center text-xs text-gray-400 mt-2">Questions rotate automatically</p>
               </div>
             </div>
           ) : (
