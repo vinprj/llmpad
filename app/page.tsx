@@ -397,8 +397,11 @@ export default function ChatPage() {
   }
 
   // Fork a conversation from a specific message (includes all messages up to that index)
-  const handleFork = async (conv: DBConversation, messageIdx: number) => {
+  const handleFork = async (convId: string, messageIdx: number) => {
     if (!sessionId || !user) return
+    
+    const conv = conversations.find(c => c.id === convId)
+    if (!conv) return
     
     // Clamp index to valid range
     const forkIdx = Math.max(0, Math.min(messageIdx, conv.messages.length - 1))
@@ -1427,10 +1430,10 @@ export default function ChatPage() {
                       <span className="text-xs text-gray-400 dark:text-[#555]">
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      {msg.content && conv && (
+                      {msg.content && (
                         <>
                           <button
-                            onClick={() => handleFork(conv, idx)}
+                            onClick={() => handleFork(currentConvId || '', idx)}
                             className="flex-shrink-0 p-1 rounded text-gray-400 dark:text-[#333] hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
                             title="Fork conversation from this point"
                           >
