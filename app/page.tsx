@@ -187,6 +187,16 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState('')
+  const [currentStarter, setCurrentStarter] = useState(0)
+
+  /* Rotate starter questions every 4 seconds */
+  useEffect(() => {
+    if (messages.length > 0) return // stop when chat has messages
+    const interval = setInterval(() => {
+      setCurrentStarter(i => (i + 1) % STARTERS.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [messages])
 
   /* File upload for Vision */
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
@@ -1404,12 +1414,11 @@ export default function ChatPage() {
                   Start a conversation below
                 </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
-                {STARTERS.map(s => (
-                  <button key={s} onClick={() => handleSend(s)}
-                    className="text-left p-3.5 rounded-xl border border-gray-200 dark:border-[#1f1f1f] hover:border-[#ff9500]/40 text-sm text-gray-600 dark:text-[#888] hover:text-gray-900 dark:hover:text-[#eee] transition-all bg-white dark:bg-[#0c0c0c] hover:bg-gray-50 dark:hover:bg-[#111] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                  >{s}</button>
-                ))}
+              <div className="w-full">
+                <button onClick={() => handleSend(STARTERS[currentStarter])}
+                  className="w-full text-left p-4 rounded-xl border border-gray-200 dark:border-[#1f1f1f] hover:border-[#ff9500]/40 text-sm text-gray-600 dark:text-[#888] hover:text-gray-900 dark:hover:text-[#eee] transition-all bg-white dark:bg-[#0c0c0c] hover:bg-gray-50 dark:hover:bg-[#111] shadow-sm animate-pulse"
+                >{STARTERS[currentStarter]}</button>
+                <p className="text-center text-xs text-gray-400 mt-2">Questions rotate automatically</p>
               </div>
             </div>
           ) : (
