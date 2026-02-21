@@ -182,6 +182,8 @@ export default function ChatPage() {
   const [currentConvId, setCurrentConvId] = useState<string | null>(null)
   const [convLoading, setConvLoading] = useState(true)
   const [sessionId, setSessionId] = useState('')
+  const [editingConvId, setEditingConvId] = useState<string | null>(null)
+  const [editingTitle, setEditingTitle] = useState('')
 
   /* Theme */
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
@@ -315,6 +317,19 @@ export default function ChatPage() {
     await supabase.from('llmpad_conversations').delete().eq('id', id)
     setConversations(prev => prev.filter(c => c.id !== id))
     if (currentConvId === id) { setMessages([]); setCurrentConvId(null) }
+  }
+
+  const renameConversation = async (id: string, newTitle: string) => {
+    if (!newTitle.trim()) { setEditingConvId(null); return }
+    await supabase.from('llmpad_conversations').update({ title: newTitle.trim() }).eq('id', id)
+    setConversations(prev => prev.map(c => c.id === id ? { ...c, title: newTitle.trim() } : c))
+    setEditingConvId(null)
+  }
+
+  const startEditing = (conv: DBConversation, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setEditingConvId(conv.id)
+    setEditingTitle(conv.title)
   }
 
   const newConversation = () => {
@@ -766,22 +781,50 @@ export default function ChatPage() {
                       }`}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate leading-tight ${
-                          currentConvId === conv.id ? 'text-gray-900 dark:text-[#e0e0e0]' : 'text-gray-700 dark:text-[#bbb]'
-                        }`}>
-                          {conv.title}
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-[#555] mt-0.5">{timeAgo(conv.updated_at)}</p>
+                        {editingConvId === conv.id ? (
+                          <input
+                            type="text"
+                            value={editingTitle}
+                            onChange={e => setEditingTitle(e.target.value)}
+                            onBlur={() => renameConversation(conv.id, editingTitle)}
+                            onKeyDown={e => { if (e.key === 'Enter') renameConversation(conv.id, editingTitle); if (e.key === 'Escape') setEditingConvId(null) }}
+                            onClick={e => e.stopPropagation()}
+                            autoFocus
+                            className="w-full text-sm font-medium bg-white dark:bg-[#1a1a1a] border border-[#ff9500] rounded px-2 py-0.5 text-gray-900 dark:text-[#e0e0e0] focus:outline-none"
+                          />
+                        ) : (
+                          <>
+                            <p className={`text-sm font-medium truncate leading-tight ${
+                              currentConvId === conv.id ? 'text-gray-900 dark:text-[#e0e0e0]' : 'text-gray-700 dark:text-[#bbb]'
+                            }`}>
+                              {conv.title}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-[#555] mt-0.5">{timeAgo(conv.updated_at)}</p>
+                          </>
+                        )}
                       </div>
-                      <button
-                        onClick={e => deleteConversation(conv.id, e)}
-                        className="opacity-0 group-hover:opacity-100 flex-shrink-0 p-1 rounded text-gray-300 dark:text-[#333] hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
-                        title="Delete"
-                      >
-                        <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                        </svg>
-                      </button>
+                      {editingConvId !== conv.id && (
+                        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+                          <button
+                            onClick={e => startEditing(conv, e)}
+                            className="flex-shrink-0 p-1 rounded text-gray-300 dark:text-[#333] hover:text-[#ff9500] dark:hover:text-[#ff9500] hover:bg-gray-100 dark:hover:bg-[#222] transition-all"
+                            title="Rename"
+                          >
+                            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18.75V8.25a2.25 2.25 0 012.25-2.25h11.5a2.25 2.25 0 012.25 2.25v11.5a2.25 2.25 0 01-2.25 2.25h-2.25" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={e => deleteConversation(conv.id, e)}
+                            className="flex-shrink-0 p-1 rounded text-gray-300 dark:text-[#333] hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
+                            title="Delete"
+                          >
+                            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
