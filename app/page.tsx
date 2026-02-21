@@ -242,6 +242,10 @@ export default function ChatPage() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
+      // Clear unauth message counter on successful login
+      if (session?.user) {
+        localStorage.removeItem('llmpad_unauth_messages')
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -369,6 +373,8 @@ export default function ChatPage() {
     await supabase.auth.signOut()
     setUser(null)
     setSession(null)
+    // Reset unauth message counter on logout
+    localStorage.removeItem('llmpad_unauth_messages')
   }
 
   /* ── TTS ── */
@@ -436,9 +442,33 @@ export default function ChatPage() {
   }, [apiKey, ttsLanguage, ttsSpeaker, speakingMsgId])
 
   /* ── Send ── */
+  // Auth gate: track message count for unauthenticated users
+  const getUnauthMessageCount = () => {
+    if (typeof window === 'undefined') return 0
+    return parseInt(localStorage.getItem('llmpad_unauth_messages') || '0', 10)
+  }
+  const incrementUnauthMessageCount = () => {
+    if (typeof window === 'undefined') return
+    const count = getUnauthMessageCount() + 1
+    localStorage.setItem('llmpad_unauth_messages', count.toString())
+  }
+
   const handleSend = useCallback(async (text?: string) => {
     const content = (text ?? input).trim()
     if (!content || isStreaming || (!apiKey && !reasoningMode)) return
+
+    // Auth gate: prompt sign-in after first message for unauthenticated users
+    if (!user) {
+      const msgCount = getUnauthMessageCount()
+      if (msgCount >= 1) {
+        setShowLoginModal(true)
+        setError('Please sign in to continue chatting')
+        return
+      }
+      // First message allowed - increment counter
+      incrementUnauthMessageCount()
+    }
+
     setError('')
 
     const userMsg: Message = { id: generateId(), role: 'user', content, timestamp: new Date() }
