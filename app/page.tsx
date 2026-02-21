@@ -1415,9 +1415,17 @@ export default function ChatPage() {
                 </p>
               </div>
               <div className="w-full">
-                <button onClick={() => handleSend(STARTERS[currentStarter])}
-                  className="w-full text-left p-4 rounded-xl border border-gray-200 dark:border-[#1f1f1f] hover:border-[#ff9500]/40 text-sm text-gray-600 dark:text-[#888] hover:text-gray-900 dark:hover:text-[#eee] transition-all bg-white dark:bg-[#0c0c0c] hover:bg-gray-50 dark:hover:bg-[#111] shadow-sm animate-pulse"
-                >{STARTERS[currentStarter]}</button>
+                <div className="relative overflow-hidden rounded-xl border border-gray-200 dark:border-[#1f1f1f] bg-white dark:bg-[#0c0c0c]">
+                  {STARTERS.map((s, i) => (
+                    <button
+                      key={s}
+                      onClick={() => handleSend(s)}
+                      className={`w-full text-left p-4 text-sm text-gray-600 dark:text-[#888] hover:text-gray-900 dark:hover:text-[#eee] hover:bg-gray-50 dark:hover:bg-[#111] transition-all duration-300 ${
+                        i === currentStarter ? 'opacity-100 translate-y-0' : 'absolute top-0 left-0 opacity-0 translate-y-2 pointer-events-none'
+                      }`}
+                    >{s}</button>
+                  ))}
+                </div>
                 <p className="text-center text-xs text-gray-400 mt-2">Questions rotate automatically</p>
               </div>
             </div>
