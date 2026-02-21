@@ -203,13 +203,6 @@ export default function ChatPage() {
   const [selectedMessages, setSelectedMessages] = useState<string[]>([])
   const [importingConvId, setImportingConvId] = useState<string | null>(null)
 
-  /* Session Recovery */
-  const [showRecoverModal, setShowRecoverModal] = useState(false)
-  const [recoverSessionId, setRecoverSessionId] = useState('')
-  const [recoverLoading, setRecoverLoading] = useState(false)
-  const [recoverError, setRecoverError] = useState('')
-  const [recoveredConversations, setRecoveredConversations] = useState<DBConversation[]>([])
-
   /* Theme */
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
@@ -353,62 +346,6 @@ export default function ChatPage() {
     await supabase.from('llmpad_conversations').delete().eq('id', id)
     setConversations(prev => prev.filter(c => c.id !== id))
     if (currentConvId === id) { setMessages([]); setCurrentConvId(null) }
-  }
-
-  // Recover lost conversations by session ID
-  const handleRecoverSession = async () => {
-    if (!recoverSessionId.trim()) {
-      setRecoverError('Please enter a session ID')
-      return
-    }
-    setRecoverLoading(true)
-    setRecoverError('')
-    setRecoveredConversations([])
-
-    try {
-      const response = await fetch('/api/sessions/recover', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          sessionId: recoverSessionId.trim(),
-          userId: user?.id || null
-        }),
-      })
-      const data = await response.json()
-
-      if (!response.ok) {
-        setRecoverError(data.error || 'Failed to recover session')
-        return
-      }
-
-      if (!data.found) {
-        setRecoverError(data.message || 'No conversations found')
-        return
-      }
-
-      setRecoveredConversations(data.conversations)
-    } catch (err: any) {
-      setRecoverError(err.message || 'Failed to recover session')
-    } finally {
-      setRecoverLoading(false)
-    }
-  }
-
-  // Load a recovered conversation
-  const loadRecoveredConversation = (conv: DBConversation) => {
-    const msgs: Message[] = (conv.messages || []).map((m: any) => ({
-      id: m.id,
-      role: m.role,
-      content: m.content,
-      timestamp: new Date(m.timestamp),
-    }))
-    setMessages(msgs)
-    setCurrentConvId(conv.id)
-    setSessionId(conv.session_id)
-    localStorage.setItem('llmpad_session', conv.session_id)
-    setShowRecoverModal(false)
-    setRecoverSessionId('')
-    setRecoveredConversations([])
   }
 
   const renameConversation = async (id: string, newTitle: string) => {
@@ -1041,12 +978,6 @@ export default function ChatPage() {
                 <div className="flex flex-col items-center justify-center h-32 gap-2 px-4 text-center">
                   <p className="text-sm text-gray-400 dark:text-[#555]">No saved conversations yet</p>
                   <p className="text-xs text-gray-300 dark:text-[#333]">Start chatting to save automatically</p>
-                  <button
-                    onClick={() => setShowRecoverModal(true)}
-                    className="text-xs text-[#ff9500] hover:text-[#ffad33] font-medium mt-2"
-                  >
-                    Recover lost conversations →
-                  </button>
                 </div>
               ) : (
                 <div className="py-2">
@@ -1680,72 +1611,6 @@ export default function ChatPage() {
             <p className="text-center text-xs text-gray-400 dark:text-[#555] mt-4">
               Sign in to save your conversations to the cloud
             </p>
-          </div>
-        </div>
-      )}
-
-      {/* Recover Lost Conversations Modal */}
-      {showRecoverModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setShowRecoverModal(false)}>
-          <div className="w-full max-w-md bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-6 shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-[#e0e0e0]">Recover Lost Conversations</h2>
-              <button onClick={() => setShowRecoverModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-[#ccc]">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            
-            <p className="text-sm text-gray-500 dark:text-[#666] mb-4">
-              Enter a previous session ID to recover your lost conversations. You can find this ID in your browser's local storage (key: <code className="text-xs bg-gray-100 dark:bg-[#1a1a1a] px-1 rounded">llmpad_session</code>).
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-[#666] mb-1">Session ID</label>
-                <input
-                  type="text"
-                  value={recoverSessionId}
-                  onChange={e => setRecoverSessionId(e.target.value)}
-                  placeholder="e.g., abc123xyz789..."
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-lg text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500] transition-colors font-mono text-sm"
-                />
-              </div>
-
-              {recoverError && (
-                <div className="text-sm p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
-                  {recoverError}
-                </div>
-              )}
-
-              <button
-                onClick={handleRecoverSession}
-                disabled={recoverLoading || !recoverSessionId.trim()}
-                className="w-full py-2.5 bg-[#ff9500] hover:bg-[#e68600] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {recoverLoading ? 'Searching...' : 'Search'}
-              </button>
-
-              {/* Recovered conversations list */}
-              {recoveredConversations.length > 0 && (
-                <div className="mt-4 border-t border-gray-200 dark:border-[#222] pt-4">
-                  <p className="text-sm font-medium text-gray-700 dark:text-[#bbb] mb-2">Found {recoveredConversations.length} conversation(s):</p>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {recoveredConversations.map(conv => (
-                      <button
-                        key={conv.id}
-                        onClick={() => loadRecoveredConversation(conv)}
-                        className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-[#2a2a2a] hover:border-[#ff9500] hover:bg-[#ff9500]/5 transition-all"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900 dark:text-[#e0e0e0] truncate">{conv.title}</span>
-                        </div>
-                        <p className="text-xs text-gray-400 dark:text-[#555] mt-1">{conv.messages?.length || 0} messages · {timeAgo(conv.created_at)}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )}
