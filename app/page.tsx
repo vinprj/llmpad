@@ -195,6 +195,7 @@ export default function ChatPage() {
   const [authPassword, setAuthPassword] = useState('')
   const [authError, setAuthError] = useState('')
   const [authLoadingSubmit, setAuthLoadingSubmit] = useState(false)
+  const [showLoginModal, setShowLoginModal] = useState(false)
 
   /* TTS */
   const [ttsLanguage, setTtsLanguage] = useState('en-IN')
@@ -614,7 +615,6 @@ export default function ChatPage() {
   }, [])
 
   /* ══════════════ RENDER ══════════════ */
-  
   // Auth loading
   if (authLoading) {
     return (
@@ -624,85 +624,7 @@ export default function ChatPage() {
     )
   }
 
-  // Auth modal (shown when not logged in)
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-[#080808] px-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="flex items-baseline justify-center gap-1 mb-2">
-              <span className="font-display text-3xl font-bold text-[#ff9500]">LLM</span>
-              <span className="font-display text-3xl font-bold text-gray-900 dark:text-[#e0e0e0]">Pad</span>
-            </div>
-            <p className="text-gray-500 dark:text-[#666]">Sign in to save your conversations</p>
-          </div>
-          
-          <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-6 shadow-lg">
-            <div className="flex mb-6 bg-gray-100 dark:bg-[#1a1a1a] rounded-lg p-1">
-              <button
-                onClick={() => setAuthMode('login')}
-                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${authMode === 'login' ? 'bg-white dark:bg-[#222] text-gray-900 dark:text-[#e0e0e0] shadow-sm' : 'text-gray-500 dark:text-[#666]'}`}
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => setAuthMode('signup')}
-                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${authMode === 'signup' ? 'bg-white dark:bg-[#222] text-gray-900 dark:text-[#e0e0e0] shadow-sm' : 'text-gray-500 dark:text-[#666]'}`}
-              >
-                Sign Up
-              </button>
-            </div>
-
-            <form onSubmit={handleAuth} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-[#666] mb-1">Email</label>
-                <input
-                  type="email"
-                  value={authEmail}
-                  onChange={e => setAuthEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-lg text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500] transition-colors"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-[#666] mb-1">Password</label>
-                <input
-                  type="password"
-                  value={authPassword}
-                  onChange={e => setAuthPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-lg text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500] transition-colors"
-                  placeholder="••••••••"
-                />
-              </div>
-              
-              {authError && (
-                <div className={`text-sm p-3 rounded-lg ${authError.includes('Check your email') ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
-                  {authError}
-                </div>
-              )}
-              
-              <button
-                type="submit"
-                disabled={authLoadingSubmit}
-                className="w-full py-2.5 bg-[#ff9500] hover:bg-[#e68600] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-              >
-                {authLoadingSubmit ? 'Please wait...' : authMode === 'login' ? 'Sign In' : 'Create Account'}
-              </button>
-            </form>
-          </div>
-          
-          <p className="text-center text-xs text-gray-400 dark:text-[#555] mt-6">
-            Powered by Supabase Auth
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  // Main app (logged in)
+  // Main app - show chat by default, auth is optional
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-[#080808] text-gray-900 dark:text-[#e0e0e0] font-sans overflow-hidden transition-colors duration-200">
 
@@ -730,26 +652,36 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {/* User Info */}
+          {/* User Info / Login */}
           <div className="px-4 py-3 border-b border-gray-100 dark:border-[#141414] flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-[#ff9500]/20 flex items-center justify-center text-[#ff9500] text-sm font-medium flex-shrink-0">
-                  {user.email?.charAt(0).toUpperCase() || 'U'}
+            {user ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-[#ff9500]/20 flex items-center justify-center text-[#ff9500] text-sm font-medium flex-shrink-0">
+                    {user.email?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-[#e0e0e0] truncate">{user.email?.split('@')[0]}</p>
+                    <p className="text-xs text-gray-400 dark:text-[#555] truncate">{user.email}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-[#e0e0e0] truncate">{user.email?.split('@')[0]}</p>
-                  <p className="text-xs text-gray-400 dark:text-[#555] truncate">{user.email}</p>
-                </div>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs text-gray-400 hover:text-red-500 dark:text-[#555] dark:hover:text-red-400 transition-colors flex-shrink-0"
+                  title="Sign out"
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
               </div>
+            ) : (
               <button
-                onClick={handleLogout}
-                className="text-xs text-gray-400 hover:text-red-500 dark:text-[#555] dark:hover:text-red-400 transition-colors flex-shrink-0"
-                title="Sign out"
+                onClick={() => setShowLoginModal(true)}
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium rounded-lg bg-[#ff9500]/10 text-[#ff9500] hover:bg-[#ff9500]/20 border border-[#ff9500]/20 transition-all"
               >
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                Sign In
               </button>
-            </div>
+            )}
           </div>
 
           {/* Tabs */}
@@ -1188,6 +1120,79 @@ export default function ChatPage() {
           </div>
         </div>
       </main>
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setShowLoginModal(false)}>
+          <div className="w-full max-w-md bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-[#e0e0e0]">Sign In to LLMPad</h2>
+              <button onClick={() => setShowLoginModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-[#ccc]">
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            
+            <div className="flex mb-6 bg-gray-100 dark:bg-[#1a1a1a] rounded-lg p-1">
+              <button
+                onClick={() => setAuthMode('login')}
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${authMode === 'login' ? 'bg-white dark:bg-[#222] text-gray-900 dark:text-[#e0e0e0] shadow-sm' : 'text-gray-500 dark:text-[#666]'}`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setAuthMode('signup')}
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${authMode === 'signup' ? 'bg-white dark:bg-[#222] text-gray-900 dark:text-[#e0e0e0] shadow-sm' : 'text-gray-500 dark:text-[#666]'}`}
+              >
+                Sign Up
+              </button>
+            </div>
+
+            <form onSubmit={handleAuth} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-[#666] mb-1">Email</label>
+                <input
+                  type="email"
+                  value={authEmail}
+                  onChange={e => setAuthEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-lg text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500] transition-colors"
+                  placeholder="you@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-[#666] mb-1">Password</label>
+                <input
+                  type="password"
+                  value={authPassword}
+                  onChange={e => setAuthPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-lg text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500] transition-colors"
+                  placeholder="••••••••"
+                />
+              </div>
+              
+              {authError && (
+                <div className={`text-sm p-3 rounded-lg ${authError.includes('Check your email') ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
+                  {authError}
+                </div>
+              )}
+              
+              <button
+                type="submit"
+                disabled={authLoadingSubmit}
+                className="w-full py-2.5 bg-[#ff9500] hover:bg-[#e68600] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+              >
+                {authLoadingSubmit ? 'Please wait...' : authMode === 'login' ? 'Sign In' : 'Create Account'}
+              </button>
+            </form>
+            
+            <p className="text-center text-xs text-gray-400 dark:text-[#555] mt-4">
+              Sign in to save your conversations to the cloud
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
