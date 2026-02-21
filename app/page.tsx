@@ -1420,7 +1420,7 @@ export default function ChatPage() {
                     <button
                       key={s}
                       onClick={() => handleSend(s)}
-                      className={`w-full text-left p-4 text-sm text-gray-600 dark:text-[#888] hover:text-gray-900 dark:hover:text-[#eee] hover:bg-gray-50 dark:hover:bg-[#111] transition-all duration-300 ${
+                      className={`w-full text-center p-4 text-sm text-gray-600 dark:text-[#888] hover:text-gray-900 dark:hover:text-[#eee] hover:bg-gray-50 dark:hover:bg-[#111] transition-all duration-300 ${
                         i === currentStarter ? 'opacity-100 translate-y-0' : 'absolute top-0 left-0 opacity-0 translate-y-2 pointer-events-none'
                       }`}
                     >{s}</button>
