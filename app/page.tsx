@@ -284,12 +284,19 @@ export default function ChatPage() {
   /* ── Supabase ops ── */
   const loadConversations = async (sid: string) => {
     setConvLoading(true)
-    const { data } = await supabase
+    let query = supabase
       .from('llmpad_conversations')
       .select('id, session_id, title, created_at, updated_at, messages, parent_conversation_id, branch_depth, user_id')
-      .or(`session_id.eq.${sid}${user ? `,user_id.eq.${user.id}` : ''}`)
       .order('updated_at', { ascending: false })
       .limit(50)
+    
+    if (user) {
+      query = query.eq('user_id', user.id)
+    } else {
+      query = query.eq('session_id', sid)
+    }
+    
+    const { data } = await query
     if (data) setConversations(data as DBConversation[])
     setConvLoading(false)
   }
