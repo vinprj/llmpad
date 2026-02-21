@@ -561,7 +561,36 @@ export default function ChatPage() {
 
     setError('')
 
-    const userMsg: Message = { id: generateId(), role: 'user', content, timestamp: new Date() }
+    // Process attachment through vision if present
+    let visionContext = ''
+    if (uploadedFile) {
+      setIsProcessingVision(true)
+      try {
+        const formData = new FormData()
+        formData.append('file', uploadedFile)
+        formData.append('language', visionLanguage)
+        
+        const visionRes = await fetch('/api/vision', {
+          method: 'POST',
+          headers: { 'x-api-key': apiKey },
+          body: formData,
+        })
+        
+        if (visionRes.ok) {
+          const visionData = await visionRes.json()
+          if (visionData.content) {
+            visionContext = `\n\n[Document "${uploadedFile.name}" analysis]\n${visionData.content}\n[/Document analysis]`
+          }
+        }
+      } catch (err) {
+        console.error('Vision processing error:', err)
+      } finally {
+        setIsProcessingVision(false)
+        clearAttachment()
+      }
+    }
+
+    const userMsg: Message = { id: generateId(), role: 'user', content: content + visionContext, timestamp: new Date() }
     const asstMsg: Message = { id: generateId(), role: 'assistant', content: '', timestamp: new Date() }
 
     setMessages(prev => [...prev, userMsg, asstMsg])
@@ -740,6 +769,15 @@ export default function ChatPage() {
     if (file) {
       setUploadedFile(file)
       setVisionError('')
+    }
+  }
+
+  // Clear/remove attachment
+  const clearAttachment = () => {
+    setUploadedFile(null)
+    setVisionError('')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
@@ -1388,42 +1426,18 @@ export default function ChatPage() {
               <div className="flex-shrink-0 flex gap-2">
                 <button
                   onClick={triggerFileUpload}
-                  disabled={(!apiKey && !reasoningMode) || isStreaming || isProcessingVision}
+                  disabled={(!apiKey && !reasoningMode) || isStreaming}
                   className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all relative ${
                     uploadedFile
                       ? 'bg-[#ff9500] text-black'
                       : 'bg-gray-200 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#666] hover:text-gray-700 dark:hover:text-[#888] hover:bg-gray-300 dark:hover:bg-[#222]'
                   } disabled:opacity-40 disabled:cursor-not-allowed`}
-                  title="Attach file for vision analysis"
+                  title="Attach file (image or PDF)"
                 >
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                   </svg>
-                  {uploadedFile && (
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#ff9500] rounded-full border-2 border-white dark:border-[#090909]" />
-                  )}
                 </button>
-                
-                {/* Uploaded file preview / Process button */}
-                {uploadedFile && (
-                  <button
-                    onClick={handleVisionUpload}
-                    disabled={isProcessingVision}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-all disabled:opacity-50"
-                    title="Analyze with Sarvam Vision"
-                  >
-                    {isProcessingVision ? (
-                      <svg className="animate-spin" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-                        <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
-                      </svg>
-                    ) : (
-                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                      </svg>
-                    )}
-                  </button>
-                )}
               </div>
 
               {/* Add Context Button */}
@@ -1446,13 +1460,13 @@ export default function ChatPage() {
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder={apiKey ? 'Send a message...' : 'Add API key to start...'}
-                rows={1} disabled={(!apiKey && !reasoningMode) || isStreaming}
+                rows={1} disabled={(!apiKey && !reasoningMode) || isStreaming || isProcessingVision}
                 className="flex-1 bg-transparent text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#444] focus:outline-none resize-none text-base leading-relaxed disabled:opacity-40"
                 style={{ maxHeight: '180px' }}
               />
               <button
                 onClick={isStreaming ? () => abortRef.current?.abort() : () => handleSend()}
-                disabled={(!apiKey && !reasoningMode) || (!input.trim() && !isStreaming)}
+                disabled={(!apiKey && !reasoningMode) || (!input.trim() && !isStreaming) || isProcessingVision}
                 className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
                   isStreaming
                     ? 'bg-red-100 dark:bg-red-500/15 text-red-500 dark:text-red-400 hover:bg-red-200'
@@ -1471,11 +1485,32 @@ export default function ChatPage() {
               <p className="text-center text-xs text-red-500 dark:text-red-400 mt-2">{visionError}</p>
             )}
             
-            {/* Uploaded file indicator */}
-            {uploadedFile && !isProcessingVision && (
-              <p className="text-center text-xs text-gray-400 dark:text-[#555] mt-2">
-                Attached: {uploadedFile.name} - Click the analyze button to process
-              </p>
+            {/* Uploaded file preview - nice pill with remove button */}
+            {uploadedFile && (
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-[#1a1a1a] rounded-lg border border-gray-200 dark:border-[#333]">
+                  {/* File icon */}
+                  {uploadedFile.type === 'application/pdf' ? (
+                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM8.5 13.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H9a.5.5 0 0 1-.5-.5v-3zm.5 1h1v2h-1v-2z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                  )}
+                  <span className="text-xs text-gray-600 dark:text-[#aaa] max-w-[150px] truncate">{uploadedFile.name}</span>
+                </div>
+                <button
+                  onClick={clearAttachment}
+                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-[#333] text-gray-400 hover:text-red-500 transition-colors"
+                  title="Remove attachment"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
             )}
             
             <p className="text-center text-xs text-gray-300 dark:text-[#333] mt-2">Enter to send · Shift+Enter for new line · Click ■ to stop</p>
