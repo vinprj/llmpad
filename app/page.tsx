@@ -361,6 +361,8 @@ export default function ChatPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword })
         if (error) throw error
+        // Close modal on successful login
+        setShowLoginModal(false)
       }
     } catch (err: any) {
       setAuthError(err.message || 'Authentication failed')
