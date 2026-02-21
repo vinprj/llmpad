@@ -384,7 +384,7 @@ export default function ChatPage() {
         messages: conv.messages,
         parent_conversation_id: parentId,
         branch_depth: branchDepth,
-        user_id: user?.id
+        user_id: user.id
       })
       .select()
       .single()
@@ -392,6 +392,37 @@ export default function ChatPage() {
     if (data) {
       setConversations(prev => [data as DBConversation, ...prev])
       // Load the new branched conversation
+      loadConversation(data as DBConversation)
+    }
+  }
+
+  // Fork a conversation from a specific message (includes all messages up to that index)
+  const handleFork = async (conv: DBConversation, messageIdx: number) => {
+    if (!sessionId || !user) return
+    
+    // Clamp index to valid range
+    const forkIdx = Math.max(0, Math.min(messageIdx, conv.messages.length - 1))
+    const forkedMessages = conv.messages.slice(0, forkIdx + 1) // include the forked message
+    
+    // Build a title that indicates it's a fork
+    const title = `Forked: ${conv.title}`
+    
+    const { data } = await supabase
+      .from('llmpad_conversations')
+      .insert({ 
+        session_id: sessionId,
+        title,
+        messages: forkedMessages,
+        parent_conversation_id: conv.id,
+        branch_depth: (conv.branch_depth || 0) + 1,
+        user_id: user.id
+      })
+      .select()
+      .single()
+    
+    if (data) {
+      setConversations(prev => [data as DBConversation, ...prev])
+      // Switch to the forked conversation
       loadConversation(data as DBConversation)
     }
   }
@@ -1396,8 +1427,17 @@ export default function ChatPage() {
                       <span className="text-xs text-gray-400 dark:text-[#555]">
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      {msg.content && (
+                      {msg.content && conv && (
                         <>
+                          <button
+                            onClick={() => handleFork(conv, idx)}
+                            className="flex-shrink-0 p-1 rounded text-gray-400 dark:text-[#333] hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
+                            title="Fork conversation from this point"
+                          >
+                            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 6l4 4-4 4" />
+                            </svg>
+                          </button>
                           <CopyButton text={msg.content} />
                           <SpeakButton
                             msgId={msg.id}
