@@ -293,8 +293,8 @@ export default function ChatPage() {
     setConvLoading(true)
     const { data } = await supabase
       .from('llmpad_conversations')
-      .select('id, session_id, title, created_at, updated_at, messages, parent_conversation_id, branch_depth')
-      .eq('session_id', sid)
+      .select('id, session_id, title, created_at, updated_at, messages, parent_conversation_id, branch_depth, user_id')
+      .or(`session_id.eq.${sid}${user ? `,user_id.eq.${user.id}` : ''}`)
       .order('updated_at', { ascending: false })
       .limit(50)
     if (data) setConversations(data as DBConversation[])
@@ -304,17 +304,30 @@ export default function ChatPage() {
   const saveConversation = useCallback(async (msgs: Message[], convId: string | null, sid: string) => {
     if (!msgs.length || !sid) return
     const serialized = msgs.map(m => ({ ...m, timestamp: m.timestamp.toISOString() }))
+    
+    const payload: any = { 
+      messages: serialized, 
+      updated_at: new Date().toISOString() 
+    }
+    if (user) payload.user_id = user.id
+
     if (convId) {
       await supabase
         .from('llmpad_conversations')
-        .update({ messages: serialized, updated_at: new Date().toISOString() })
+        .update(payload)
         .eq('id', convId)
-      setConversations(prev => prev.map(c => c.id === convId ? { ...c, messages: serialized, updated_at: new Date().toISOString() } : c))
+      setConversations(prev => prev.map(c => c.id === convId ? { ...c, ...payload } : c))
     } else {
       const title = msgs.find(m => m.role === 'user')?.content.slice(0, 50) + (msgs[0]?.content.length > 50 ? '…' : '') || 'New Conversation'
+      const insertPayload = { 
+        session_id: sid, 
+        title, 
+        messages: serialized,
+        user_id: user?.id 
+      }
       const { data } = await supabase
         .from('llmpad_conversations')
-        .insert({ session_id: sid, title, messages: serialized })
+        .insert(insertPayload)
         .select()
         .single()
       if (data) {
@@ -426,7 +439,8 @@ export default function ChatPage() {
         title, 
         messages: conv.messages,
         parent_conversation_id: parentId,
-        branch_depth: branchDepth
+        branch_depth: branchDepth,
+        user_id: user?.id
       })
       .select()
       .single()
