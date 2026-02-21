@@ -74,17 +74,30 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(h / 24)}d ago`
 }
 
-/* ── Copy Button ── */
+/* ── Action Buttons ── */
+// All action buttons now use icon-only style for clarity and consistency
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
   return (
     <button
       onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
-      className="text-xs text-gray-400 dark:text-[#666] hover:text-gray-600 dark:hover:text-[#ccc] transition-colors flex items-center gap-1"
+      className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all ${
+        copied
+          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400'
+          : 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-100 dark:hover:bg-[#222] hover:text-gray-700 dark:hover:text-[#ccc]'
+      }`}
+      title="Copy"
     >
-      {copied
-        ? <><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>copied</>
-        : <><svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>copy</>}
+      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+        {copied ? (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        ) : (
+          <>
+            <rect x="9" y="9" width="13" height="13" rx="2" />
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+          </>
+        )}
+      </svg>
     </button>
   )
 }
@@ -94,13 +107,26 @@ function SpeakButton({ msgId, text, language, speaker, isPlaying, onClick }: { m
     <button
       onClick={onClick}
       disabled={!text}
-      className="text-xs text-gray-400 dark:text-[#666] hover:text-[#ff9500] dark:hover:text-[#ff9500] transition-colors flex items-center gap-1 disabled:opacity-40"
-      title="Speak"
+      className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all ${
+        isPlaying
+          ? 'bg-[#ff9500]/15 text-[#ff9500] hover:bg-[#ff9500]/25'
+          : 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-100 dark:hover:bg-[#222] hover:text-[#ff9500]'
+      } disabled:opacity-30`}
+      title={isPlaying ? 'Stop' : 'Speak'}
     >
-      {isPlaying
-        ? <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24"><rect x="5" y="2" width="4" height="20" rx="1" /><rect x="15" y="6" width="4" height="12" rx="1" /></svg>
-        : <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M3 10v4c0 1.1.9 2 2 2h2a2 2 0 002-2v-2c0-1.1.9-2 2-2h2a2 2 0 002-2v-4a2 2 0 00-2-2H7a2 2 0 00-2 2v4z" /><path d="M8 12a3 3 0 000 6c0 1.66 1.34 3 3 3s3-1.34 3-3" /></svg>}
-      {isPlaying ? 'stop' : 'speak'}
+      <svg width="16" height="16" fill={isPlaying ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+        {isPlaying ? (
+          <>
+            <rect x="6" y="4" width="4" height="16" rx="1" />
+            <rect x="14" y="7" width="4" height="10" rx="1" />
+          </>
+        ) : (
+          <>
+            <path d="M3 10v4c0 1.1.9 2 2 2h2a2 2 0 002-2v-2c0-1.1.9-2 2-2h2a2 2 0 002-2v-4a2 2 0 00-2-2H7a2 2 0 00-2 2v4z" />
+            <path d="M8 12a3 3 0 000 6c0 1.66 1.34 3 3 3s3-1.34 3-3" />
+          </>
+        )}
+      </svg>
     </button>
   )
 }
@@ -109,13 +135,12 @@ function RetryButton({ text, onClick }: { text: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="text-xs text-gray-400 dark:text-[#666] hover:text-purple-500 dark:hover:text-purple-400 transition-colors flex items-center gap-1"
+      className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-500 dark:hover:text-purple-400 transition-all"
       title="Retry with reasoning"
     >
-      <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
       </svg>
-      retry
     </button>
   )
 }
@@ -289,13 +314,13 @@ export default function ChatPage() {
       .select('id, session_id, title, created_at, updated_at, messages, parent_conversation_id, branch_depth, user_id')
       .order('updated_at', { ascending: false })
       .limit(50)
-    
+
     if (user) {
       query = query.eq('user_id', user.id)
     } else {
       query = query.eq('session_id', sid)
     }
-    
+
     const { data } = await query
     if (data) setConversations(data as DBConversation[])
     setConvLoading(false)
@@ -304,10 +329,10 @@ export default function ChatPage() {
   const saveConversation = useCallback(async (msgs: Message[], convId: string | null, sid: string) => {
     if (!msgs.length || !sid) return
     const serialized = msgs.map(m => ({ ...m, timestamp: m.timestamp.toISOString() }))
-    
-    const payload: any = { 
-      messages: serialized, 
-      updated_at: new Date().toISOString() 
+
+    const payload: any = {
+      messages: serialized,
+      updated_at: new Date().toISOString()
     }
     if (user) payload.user_id = user.id
 
@@ -319,11 +344,11 @@ export default function ChatPage() {
       setConversations(prev => prev.map(c => c.id === convId ? { ...c, ...payload } : c))
     } else {
       const title = msgs.find(m => m.role === 'user')?.content.slice(0, 50) + (msgs[0]?.content.length > 50 ? '…' : '') || 'New Conversation'
-      const insertPayload = { 
-        session_id: sid, 
-        title, 
+      const insertPayload = {
+        session_id: sid,
+        title,
         messages: serialized,
-        user_id: user?.id 
+        user_id: user?.id
       }
       const { data } = await supabase
         .from('llmpad_conversations')
@@ -371,16 +396,16 @@ export default function ChatPage() {
   const branchConversation = async (conv: DBConversation, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!sessionId || !user) return
-    
+
     const title = `${conv.title} (branch)`
     const parentId = conv.parent_conversation_id || conv.id
     const branchDepth = (conv.branch_depth || 0) + 1
-    
+
     const { data } = await supabase
       .from('llmpad_conversations')
-      .insert({ 
-        session_id: sessionId, 
-        title, 
+      .insert({
+        session_id: sessionId,
+        title,
         messages: conv.messages,
         parent_conversation_id: parentId,
         branch_depth: branchDepth,
@@ -388,7 +413,7 @@ export default function ChatPage() {
       })
       .select()
       .single()
-    
+
     if (data) {
       setConversations(prev => [data as DBConversation, ...prev])
       // Load the new branched conversation
@@ -399,20 +424,20 @@ export default function ChatPage() {
   // Fork a conversation from a specific message (includes all messages up to that index)
   const handleFork = async (convId: string, messageIdx: number) => {
     if (!sessionId || !user) return
-    
+
     const conv = conversations.find(c => c.id === convId)
     if (!conv) return
-    
+
     // Clamp index to valid range
     const forkIdx = Math.max(0, Math.min(messageIdx, conv.messages.length - 1))
     const forkedMessages = conv.messages.slice(0, forkIdx + 1) // include the forked message
-    
+
     // Build a title that indicates it's a fork
     const title = `Forked: ${conv.title}`
-    
+
     const { data } = await supabase
       .from('llmpad_conversations')
-      .insert({ 
+      .insert({
         session_id: sessionId,
         title,
         messages: forkedMessages,
@@ -422,7 +447,7 @@ export default function ChatPage() {
       })
       .select()
       .single()
-    
+
     if (data) {
       setConversations(prev => [data as DBConversation, ...prev])
       // Switch to the forked conversation
@@ -433,7 +458,7 @@ export default function ChatPage() {
   const importContext = async (convId: string) => {
     const conv = conversations.find(c => c.id === convId)
     if (!conv) return
-    
+
     // Show messages selection modal
     setImportingConvId(convId)
     setSelectedMessages([])
@@ -442,20 +467,20 @@ export default function ChatPage() {
 
   const confirmImportContext = () => {
     if (!importingConvId || selectedMessages.length === 0) return
-    
+
     const conv = conversations.find(c => c.id === importingConvId)
     if (!conv) return
-    
+
     // Get selected messages
     const importedMsgs = conv.messages.filter(m => selectedMessages.includes(m.id))
-    
+
     // Add to current conversation messages
     const newMsgs: Message[] = importedMsgs.map(m => ({
       ...m,
       id: generateId(),
       timestamp: new Date(m.timestamp),
     }))
-    
+
     setMessages(prev => [...newMsgs, ...prev])
     setShowContextModal(false)
     setImportingConvId(null)
@@ -565,16 +590,16 @@ export default function ChatPage() {
       }
 
       setSpeakingMsgId(msgId)
-      
+
       // Play audio
       const audio = new Audio(`data:audio/mp3;base64,${data.audio}`)
       audioRef.current = audio
-      
+
       audio.onended = () => {
         setSpeakingMsgId(null)
         audioRef.current = null
       }
-      
+
       audio.onerror = () => {
         setSpeakingMsgId(null)
         setError('Audio playback failed')
@@ -626,19 +651,19 @@ export default function ChatPage() {
         setVisionError('Sarvam API key required for vision. Add it in Settings.')
         return
       }
-      
+
       setIsProcessingVision(true)
       try {
         const formData = new FormData()
         formData.append('file', uploadedFile)
         formData.append('language', visionLanguage)
-        
+
         const visionRes = await fetch('/api/vision', {
           method: 'POST',
           headers: { 'x-api-key': apiKey },
           body: formData,
         })
-        
+
         if (visionRes.ok) {
           const visionData = await visionRes.json()
           if (visionData.content) {
@@ -670,10 +695,10 @@ export default function ChatPage() {
       // Use OpenRouter for reasoning mode, otherwise use Sarvam via proxy
       const isReasoning = reasoningMode && openrouterKey
       console.log('[Chat] isReasoning:', isReasoning, 'reasoningMode:', reasoningMode, 'openrouterKey exists:', !!openrouterKey)
-      const endpoint = isReasoning 
+      const endpoint = isReasoning
         ? '/api/openrouter'
         : '/api/chat'
-      
+
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       let body: Record<string, unknown>
 
@@ -708,7 +733,7 @@ export default function ChatPage() {
     if (!res.ok) {
         const contentType = res.headers.get('content-type') || ''
         const text = await res.text()
-        
+
         // If not streaming, try to parse as JSON error
         if (!contentType.includes('text/event-stream')) {
           console.log('[Chat] Non-streaming response, content-type:', contentType, 'body:', text.slice(0, 300))
@@ -1426,34 +1451,37 @@ export default function ChatPage() {
                         )}
                       </div>
                     )}
-                    <div className={`flex items-center gap-2.5 mt-1.5 px-1 opacity-0 group-hover:opacity-100 transition-opacity ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <span className="text-xs text-gray-400 dark:text-[#555]">
-                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                    <div className={`flex flex-col gap-1.5 mt-1.5 text-xs text-gray-400 dark:text-[#555] opacity-0 group-hover:opacity-100 transition-opacity ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                      <span>{msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       {msg.content && (
-                        <>
+                        <div className="flex items-center gap-2 mt-2">
                           <button
                             onClick={() => handleFork(currentConvId || '', idx)}
-                            className="flex-shrink-0 p-1 rounded text-gray-400 dark:text-[#333] hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
-                            title="Fork conversation from this point"
+                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] text-gray-500 dark:text-[#aaa] hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 hover:text-purple-600 dark:hover:text-purple-400 transition-all"
+                            title="Fork from this point"
                           >
-                            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M8 6l4 4-4 4" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 12h8" />
                             </svg>
+                            <span>Fork</span>
                           </button>
-                          <CopyButton text={msg.content} />
-                          <SpeakButton
-                            msgId={msg.id}
-                            text={msg.content}
-                            language={ttsLanguage}
-                            speaker={ttsSpeaker}
-                            isPlaying={speakingMsgId === msg.id}
-                            onClick={() => handleSpeak(msg.id, msg.content)}
-                          />
-                          {msg.role === 'user' && (
-                            <RetryButton text={msg.content} onClick={() => handleRetry(msg.content)} />
-                          )}
-                        </>
+
+                          <div className="flex items-center gap-1.5">
+                            <CopyButton text={msg.content} />
+                            <SpeakButton
+                              msgId={msg.id}
+                              text={msg.content}
+                              language={ttsLanguage}
+                              speaker={ttsSpeaker}
+                              isPlaying={speakingMsgId === msg.id}
+                              onClick={() => handleSpeak(msg.id, msg.content)}
+                            />
+                            {msg.role === 'user' && (
+                              <RetryButton text={msg.content} onClick={() => handleRetry(msg.content)} />
+                            )}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1481,7 +1509,7 @@ export default function ChatPage() {
                 ⚡ Add your API key in <button onClick={() => { setShowSidebar(true); setSidebarTab('settings') }} className="text-[#ff9500] hover:underline">Settings</button> to start chatting
               </p>
             )}
-            
+
             {/* Hidden file input */}
             <input
               ref={fileInputRef}
@@ -1490,41 +1518,39 @@ export default function ChatPage() {
               onChange={handleFileSelect}
               className="hidden"
             />
-            
-            <div className={`flex gap-3 items-end rounded-2xl px-4 py-3 border transition-colors ${
+
+            <div className={`flex items-center gap-2.5 rounded-2xl px-4 py-3 border transition-all ${
               apiKey
-                ? 'bg-gray-50 dark:bg-[#0f0f0f] border-gray-300 dark:border-[#1e1e1e] focus-within:border-[#ff9500]/50'
+                ? 'bg-white dark:bg-[#0f0f0f] border-gray-300 dark:border-[#444] focus-within:border-[#ff9500] focus-within:ring-1 focus-within:ring-[#ff9500]/30'
                 : 'bg-gray-50 dark:bg-[#0f0f0f] border-gray-200 dark:border-[#161616]'
             }`}>
               {/* Attachment button */}
-              <div className="flex-shrink-0 flex gap-2">
-                <button
-                  onClick={triggerFileUpload}
-                  disabled={(!apiKey && !reasoningMode) || isStreaming}
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all relative ${
-                    uploadedFile
-                      ? 'bg-[#ff9500] text-black'
-                      : 'bg-gray-200 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#666] hover:text-gray-700 dark:hover:text-[#888] hover:bg-gray-300 dark:hover:bg-[#222]'
-                  } disabled:opacity-40 disabled:cursor-not-allowed`}
-                  title="Attach file (image or PDF)"
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                  </svg>
-                </button>
-              </div>
+              <button
+                onClick={triggerFileUpload}
+                disabled={(!apiKey && !reasoningMode) || isStreaming || isProcessingVision}
+                className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                  uploadedFile
+                    ? 'bg-[#ff9500] text-black'
+                    : 'bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-200 dark:hover:bg-[#222] hover:text-[#ff9500]'
+                } disabled:opacity-40 disabled:cursor-not-allowed`}
+                title="Attach file (image or PDF)"
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              </button>
 
               {/* Add Context Button */}
               <button
                 onClick={() => setShowContextModal(true)}
-                className="flex-shrink-0 p-2 rounded-lg text-gray-400 dark:text-[#555] hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
+                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-500 dark:hover:text-purple-400 transition-all"
                 title="Add context from other chats"
               >
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
-              
+
               <textarea
                 ref={textareaRef} value={input}
                 onChange={e => {
@@ -1535,49 +1561,50 @@ export default function ChatPage() {
                 onKeyDown={handleKeyDown}
                 placeholder={apiKey ? 'Send a message...' : 'Add API key to start...'}
                 rows={1} disabled={(!apiKey && !reasoningMode) || isStreaming || isProcessingVision}
-                className="flex-1 bg-transparent text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#444] focus:outline-none resize-none text-base leading-relaxed disabled:opacity-40"
-                style={{ maxHeight: '180px' }}
+                className="flex-1 bg-transparent text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#666] focus:outline-none resize-none text-base leading-relaxed py-2.5 disabled:opacity-50"
+                style={{ maxHeight: '180px', minHeight: '44px' }}
               />
               <button
                 onClick={isStreaming ? () => abortRef.current?.abort() : () => handleSend()}
                 disabled={(!apiKey && !reasoningMode) || (!input.trim() && !isStreaming) || isProcessingVision}
-                className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                className={`flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-all shadow-sm ${
                   isStreaming
-                    ? 'bg-red-100 dark:bg-red-500/15 text-red-500 dark:text-red-400 hover:bg-red-200'
-                    : 'bg-[#ff9500] text-black hover:bg-[#ffad33] disabled:opacity-25 disabled:cursor-not-allowed'
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'bg-[#ff9500] text-black hover:bg-[#e68600] disabled:opacity-30 disabled:cursor-not-allowed'
                 }`}
+                title={isStreaming ? 'Stop' : 'Send'}
               >
                 {isStreaming
-                  ? <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" /></svg>
-                  : <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
+                  ? <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+                  : <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
                 }
               </button>
             </div>
             
             {/* Vision error message */}
             {visionError && (
-              <p className="text-center text-xs text-red-500 dark:text-red-400 mt-2">{visionError}</p>
+              <p className="text-center text-xs text-red-500 dark:text-red-400 mt-2.5 font-medium">{visionError}</p>
             )}
             
-            {/* Uploaded file preview - nice pill with remove button */}
+            {/* Uploaded file preview */}
             {uploadedFile && (
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-[#1a1a1a] rounded-lg border border-gray-200 dark:border-[#333]">
+              <div className="flex items-center justify-center gap-3 mt-3">
+                <div className="flex items-center gap-2.5 px-3.5 py-2 bg-gray-100 dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-[#333]">
                   {/* File icon */}
                   {uploadedFile.type === 'application/pdf' ? (
-                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM8.5 13.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H9a.5.5 0 0 1-.5-.5v-3zm.5 1h1v2h-1v-2z"/>
+                    <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM8.5 13.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H9a.5.5 0 0 1-.5-.5v-3zm.5 1h1v2h-1V2z"/>
                     </svg>
                   ) : (
-                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                   )}
-                  <span className="text-xs text-gray-600 dark:text-[#aaa] max-w-[150px] truncate">{uploadedFile.name}</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-[#ccc] max-w-[200px] truncate">{uploadedFile.name}</span>
                 </div>
                 <button
                   onClick={clearAttachment}
-                  className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-[#333] text-gray-400 hover:text-red-500 transition-colors"
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] text-gray-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 dark:hover:text-red-400 transition-all"
                   title="Remove attachment"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -1587,7 +1614,9 @@ export default function ChatPage() {
               </div>
             )}
             
-            <p className="text-center text-xs text-gray-300 dark:text-[#333] mt-2">Enter to send · Shift+Enter for new line · Click ■ to stop</p>
+            <p className="text-center text-xs text-gray-400 dark:text-[#666] mt-2.5 text-[0.75rem]">
+              Enter to send · Shift+Enter for new line · Click ■ to stop
+            </p>
           </div>
         </div>
       </main>
@@ -1602,7 +1631,7 @@ export default function ChatPage() {
                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
-            
+
             <div className="flex mb-6 bg-gray-100 dark:bg-[#1a1a1a] rounded-lg p-1">
               <button
                 onClick={() => setAuthMode('login')}
@@ -1642,13 +1671,13 @@ export default function ChatPage() {
                   placeholder="••••••••"
                 />
               </div>
-              
+
               {authError && (
                 <div className={`text-sm p-3 rounded-lg ${authError.includes('Check your email') ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
                   {authError}
                 </div>
               )}
-              
+
               <button
                 type="submit"
                 disabled={authLoadingSubmit}
@@ -1657,7 +1686,7 @@ export default function ChatPage() {
                 {authLoadingSubmit ? 'Please wait...' : authMode === 'login' ? 'Sign In' : 'Create Account'}
               </button>
             </form>
-            
+
             <p className="text-center text-xs text-gray-400 dark:text-[#555] mt-4">
               Sign in to save your conversations to the cloud
             </p>
