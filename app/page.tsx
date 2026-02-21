@@ -627,7 +627,7 @@ export default function ChatPage() {
 
   const handleSend = useCallback(async (text?: string) => {
     const content = (text ?? input).trim()
-    if (!content || isStreaming || (!apiKey && !reasoningMode)) return
+    if (!content || isStreaming) return
 
     // Auth gate: prompt sign-in after first message for unauthenticated users
     if (!user) {
