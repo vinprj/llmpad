@@ -81,10 +81,10 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
-      className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all ${
+      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
         copied
-          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400'
-          : 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-100 dark:hover:bg-[#222] hover:text-gray-700 dark:hover:text-[#ccc]'
+          ? 'bg-green-100 dark:bg-green-500/30 text-green-600 dark:text-green-400'
+          : 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white'
       }`}
       title="Copy"
     >
@@ -107,10 +107,10 @@ function SpeakButton({ msgId, text, language, speaker, isPlaying, onClick }: { m
     <button
       onClick={onClick}
       disabled={!text}
-      className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all ${
+      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
         isPlaying
-          ? 'bg-[#ff9500]/15 text-[#ff9500] hover:bg-[#ff9500]/25'
-          : 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-100 dark:hover:bg-[#222] hover:text-[#ff9500]'
+          ? 'bg-[#ff9500] text-white hover:bg-[#e68600]'
+          : 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-[#ff9500]'
       } disabled:opacity-30`}
       title={isPlaying ? 'Stop' : 'Speak'}
     >
@@ -135,7 +135,7 @@ function RetryButton({ text, onClick }: { text: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-500 dark:hover:text-purple-400 transition-all"
+      className="flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-purple-100 dark:hover:bg-purple-900/40 hover:text-purple-500 dark:hover:text-purple-400 transition-all"
       title="Retry with reasoning"
     >
       <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -1457,7 +1457,7 @@ export default function ChatPage() {
                         <div className="flex items-center gap-2 mt-2">
                           <button
                             onClick={() => handleFork(currentConvId || '', idx)}
-                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] text-gray-500 dark:text-[#aaa] hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 hover:text-purple-600 dark:hover:text-purple-400 transition-all"
+                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] text-gray-500 dark:text-[#aaa] hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-100 dark:hover:bg-purple-900/50 hover:text-purple-600 dark:hover:text-purple-400 transition-all"
                             title="Fork from this point"
                           >
                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -1521,7 +1521,7 @@ export default function ChatPage() {
 
             <div className={`flex items-center gap-2.5 rounded-2xl px-4 py-3 border transition-all ${
               apiKey
-                ? 'bg-white dark:bg-[#0f0f0f] border-gray-300 dark:border-[#444] focus-within:border-[#ff9500] focus-within:ring-1 focus-within:ring-[#ff9500]/30'
+                ? 'bg-white dark:bg-[#0f0f0f] border-gray-300 dark:border-[#444] focus-within:border-[#ff9500] focus-within:ring-2 focus-within:ring-[#ff9500]/40'
                 : 'bg-gray-50 dark:bg-[#0f0f0f] border-gray-200 dark:border-[#161616]'
             }`}>
               {/* Attachment button */}
@@ -1543,7 +1543,7 @@ export default function ChatPage() {
               {/* Add Context Button */}
               <button
                 onClick={() => setShowContextModal(true)}
-                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-500 dark:hover:text-purple-400 transition-all"
+                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-purple-100 dark:hover:bg-purple-900/50 hover:text-purple-500 dark:hover:text-purple-400 transition-all"
                 title="Add context from other chats"
               >
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -1604,7 +1604,7 @@ export default function ChatPage() {
                 </div>
                 <button
                   onClick={clearAttachment}
-                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] text-gray-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 dark:hover:text-red-400 transition-all"
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/50 hover:text-red-500 dark:hover:text-red-400 transition-all"
                   title="Remove attachment"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
