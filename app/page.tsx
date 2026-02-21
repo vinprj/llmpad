@@ -273,7 +273,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (!sessionId) return
     loadConversations(sessionId)
-  }, [sessionId])
+  }, [sessionId, user])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
