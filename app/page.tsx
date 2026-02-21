@@ -187,7 +187,14 @@ export default function ChatPage() {
   const [conversations, setConversations] = useState<DBConversation[]>([])
   const [currentConvId, setCurrentConvId] = useState<string | null>(null)
   const [convLoading, setConvLoading] = useState(true)
-  const [sessionId, setSessionId] = useState('')
+  const [sessionId, setSessionId] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    const stored = localStorage.getItem('llmpad_session')
+    if (stored) return stored
+    const newId = generateId()
+    localStorage.setItem('llmpad_session', newId)
+    return newId
+  })
   const [editingConvId, setEditingConvId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
 
@@ -242,11 +249,6 @@ export default function ChatPage() {
     const rm = localStorage.getItem('llmpad_reasoning_model'); if (rm) setReasoningModel(rm)
     const tl = localStorage.getItem('llmpad_tts_lang'); if (tl) setTtsLanguage(tl)
     const ts = localStorage.getItem('llmpad_tts_speaker'); if (ts) setTtsSpeaker(ts)
-
-    // Session ID
-    let sid = localStorage.getItem('llmpad_session')
-    if (!sid) { sid = generateId(); localStorage.setItem('llmpad_session', sid) }
-    setSessionId(sid)
 
     // Check Supabase auth
     supabase.auth.getSession().then(({ data: { session } }) => {
