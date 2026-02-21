@@ -1162,8 +1162,8 @@ export default function ChatPage() {
                   <p className="text-xs text-gray-400 dark:text-[#444]">Get free key at openrouter.ai</p>
                 </div>
 
-                {/* OpenRouter Model */}
-                {openrouterKey && (
+                {/* OpenRouter Model - show when reasoning mode is on */}
+                {reasoningMode && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">Reasoning Model</label>
                     <select
@@ -1326,38 +1326,42 @@ export default function ChatPage() {
               </svg>
               Instructions{instructions.trim() ? ' ●' : ''}
             </button>
-            {/* Reasoning toggle */}
-            <button
-              onClick={() => {
-                if (!openrouterKey) {
-                  setError('Add OpenRouter key in Settings first')
-                  return
-                }
-                setReasoningMode(r => !r)
-              }}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                reasoningMode
-                  ? 'bg-orange-100 dark:bg-orange-500/20 border-orange-300 dark:border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-500/30'
-                  : 'bg-gray-100 dark:bg-[#111] border-gray-200 dark:border-[#1a1a1a] text-gray-400 dark:text-[#555] hover:text-gray-600 dark:hover:text-[#888]'
-              }`}
-              title={openrouterKey ? 'Use OpenRouter for longer responses' : 'Add OpenRouter key in Settings'}
-            >
-              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
-              </svg>
-              Reason{reasoningMode ? ' ●' : ''}
-            </button>
+            {/* Reasoning toggle - only show for signed in users */}
+            {user && (
+              <button
+                onClick={() => {
+                  if (!openrouterKey) {
+                    setError('Add OpenRouter key in Settings first')
+                    return
+                  }
+                  setReasoningMode(r => !r)
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  reasoningMode
+                    ? 'bg-orange-100 dark:bg-orange-500/20 border-orange-300 dark:border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-500/30'
+                    : 'bg-gray-100 dark:bg-[#111] border-gray-200 dark:border-[#1a1a1a] text-gray-400 dark:text-[#555] hover:text-gray-600 dark:hover:text-[#888]'
+                }`}
+                title={openrouterKey ? 'Use OpenRouter for longer responses' : 'Add OpenRouter key in Settings'}
+              >
+                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                </svg>
+                Reason{reasoningMode ? ' ●' : ''}
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-1">
             <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#111] transition-colors text-gray-400 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#ccc]">
               {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </button>
-            <button onClick={newConversation} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#111] transition-colors text-gray-400 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#ccc]" title="New chat">
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-              </svg>
-            </button>
+            {user && (
+              <button onClick={newConversation} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#111] transition-colors text-gray-400 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#ccc]" title="New chat">
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+              </button>
+            )}
           </div>
         </header>
 
