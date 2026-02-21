@@ -1395,7 +1395,7 @@ export default function ChatPage() {
                 <div className="w-14 h-14 rounded-2xl bg-[#ff9500]/10 border border-[#ff9500]/25 flex items-center justify-center mx-auto mb-4 text-xl">⚡</div>
                 <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-[#e0e0e0]">LLMPad</h2>
                 <p className="text-sm text-gray-500 dark:text-[#777] mt-2">
-                  {apiKey ? 'Start a conversation below' : 'Add your API key in Settings to begin'}
+                  Start a conversation below
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
