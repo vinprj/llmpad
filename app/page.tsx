@@ -943,17 +943,33 @@ export default function ChatPage() {
                           />
                         ) : (
                           <>
-                            <p className={`text-sm font-medium truncate leading-tight ${
-                              currentConvId === conv.id ? 'text-gray-900 dark:text-[#e0e0e0]' : 'text-gray-700 dark:text-[#bbb]'
-                            }`}>
-                              {conv.title}
-                            </p>
+                            <div className="flex items-center gap-1.5">
+                              {conv.branch_depth > 0 && (
+                                <span className="flex-shrink-0 text-[10px] px-1 py-0.5 rounded-full bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 font-medium" title={`Branched (depth ${conv.branch_depth})`}>
+                                  ⎔
+                                </span>
+                              )}
+                              <p className={`text-sm font-medium truncate leading-tight ${
+                                currentConvId === conv.id ? 'text-gray-900 dark:text-[#e0e0e0]' : 'text-gray-700 dark:text-[#bbb]'
+                              }`}>
+                                {conv.title}
+                              </p>
+                            </div>
                             <p className="text-xs text-gray-400 dark:text-[#555] mt-0.5">{timeAgo(conv.updated_at)}</p>
                           </>
                         )}
                       </div>
                       {editingConvId !== conv.id && (
                         <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+                          <button
+                            onClick={e => branchConversation(conv, e)}
+                            className="flex-shrink-0 p-1 rounded text-gray-300 dark:text-[#333] hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
+                            title="Branch"
+                          >
+                            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                          </button>
                           <button
                             onClick={e => startEditing(conv, e)}
                             className="flex-shrink-0 p-1 rounded text-gray-300 dark:text-[#333] hover:text-[#ff9500] dark:hover:text-[#ff9500] hover:bg-gray-100 dark:hover:bg-[#222] transition-all"
@@ -1409,6 +1425,17 @@ export default function ChatPage() {
                   </button>
                 )}
               </div>
+
+              {/* Add Context Button */}
+              <button
+                onClick={() => setShowContextModal(true)}
+                className="flex-shrink-0 p-2 rounded-lg text-gray-400 dark:text-[#555] hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
+                title="Add context from other chats"
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
               
               <textarea
                 ref={textareaRef} value={input}
@@ -1525,6 +1552,107 @@ export default function ChatPage() {
             <p className="text-center text-xs text-gray-400 dark:text-[#555] mt-4">
               Sign in to save your conversations to the cloud
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Context Import Modal */}
+      {showContextModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setShowContextModal(false)}>
+          <div className="w-full max-w-lg bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-6 shadow-xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-[#e0e0e0]">Add Context</h2>
+              <button onClick={() => setShowContextModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-[#ccc]">
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            {!importingConvId ? (
+              <>
+                <p className="text-sm text-gray-500 dark:text-[#666] mb-4">Select a conversation to import messages from:</p>
+                <div className="flex-1 overflow-y-auto space-y-2 max-h-[50vh]">
+                  {conversations
+                    .filter(c => c.id !== currentConvId)
+                    .map(conv => (
+                      <button
+                        key={conv.id}
+                        onClick={() => importContext(conv.id)}
+                        className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-[#2a2a2a] hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all"
+                      >
+                        <div className="flex items-center gap-2">
+                          {conv.branch_depth > 0 && <span className="text-[10px]">⎔</span>}
+                          <span className="font-medium text-gray-900 dark:text-[#e0e0e0] truncate">{conv.title}</span>
+                        </div>
+                        <p className="text-xs text-gray-400 dark:text-[#555] mt-1">{conv.messages.length} messages · {timeAgo(conv.updated_at)}</p>
+                      </button>
+                    ))}
+                  {conversations.filter(c => c.id !== currentConvId).length === 0 && (
+                    <p className="text-sm text-gray-400 dark:text-[#555] text-center py-8">No other conversations available</p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                {(() => {
+                  const conv = conversations.find(c => c.id === importingConvId)
+                  return (
+                    <>
+                      <p className="text-sm text-gray-500 dark:text-[#666] mb-4">
+                        Select messages to import from <span className="font-medium text-gray-900 dark:text-[#e0e0e0]">{conv?.title}</span>:
+                      </p>
+                      <div className="flex-1 overflow-y-auto space-y-2 max-h-[50vh] mb-4">
+                        {conv?.messages.map(msg => (
+                          <label
+                            key={msg.id}
+                            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                              selectedMessages.includes(msg.id)
+                                ? 'border-purple-400 dark:border-purple-500 bg-purple-50 dark:bg-purple-950/20'
+                                : 'border-gray-200 dark:border-[#2a2a2a] hover:border-purple-300 dark:hover:border-purple-600'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedMessages.includes(msg.id)}
+                              onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedMessages(prev => [...prev, msg.id])
+                                } else {
+                                  setSelectedMessages(prev => prev.filter(id => id !== msg.id))
+                                }
+                              }}
+                              className="mt-1 w-4 h-4 text-purple-500 rounded border-gray-300 dark:border-[#444] focus:ring-purple-500"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <span className={`text-xs font-medium ${
+                                msg.role === 'user' ? 'text-[#ff9500]' : 'text-purple-500'
+                              }`}>
+                                {msg.role === 'user' ? 'You' : 'Assistant'}
+                              </span>
+                              <p className="text-sm text-gray-700 dark:text-[#bbb] line-clamp-2">{msg.content}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setImportingConvId(null)}
+                          className="flex-1 py-2 px-4 text-sm font-medium text-gray-600 dark:text-[#888] bg-gray-100 dark:bg-[#1a1a1a] rounded-lg hover:bg-gray-200 dark:hover:bg-[#222] transition-colors"
+                        >
+                          Back
+                        </button>
+                        <button
+                          onClick={confirmImportContext}
+                          disabled={selectedMessages.length === 0}
+                          className="flex-1 py-2 px-4 text-sm font-medium text-black bg-purple-500 rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Import {selectedMessages.length} message{selectedMessages.length !== 1 ? 's' : ''}
+                        </button>
+                      </div>
+                    </>
+                  )
+                })()}
+              </>
+            )}
           </div>
         </div>
       )}
