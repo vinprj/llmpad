@@ -1030,7 +1030,6 @@ export default function ChatPage() {
             <div className="flex-1 overflow-y-auto">
               {!user ? (
                 <div className="flex flex-col items-center justify-center h-32 gap-2 px-4 text-center">
-                  <p className="text-sm text-gray-400 dark:text-[#555]">Sign in to access</p>
                   <button
                     onClick={() => setShowLoginModal(true)}
                     className="text-xs text-[#ff9500] hover:text-[#ffad33] font-medium"
@@ -1130,7 +1129,6 @@ export default function ChatPage() {
             <div className="flex-1 overflow-y-auto">
               {!user ? (
                 <div className="flex flex-col items-center justify-center h-32 gap-2 px-4 text-center">
-                  <p className="text-sm text-gray-400 dark:text-[#555]">Sign in to access</p>
                   <button
                     onClick={() => setShowLoginModal(true)}
                     className="text-xs text-[#ff9500] hover:text-[#ffad33] font-medium"
