@@ -22,10 +22,12 @@ const MODELS = [
 ]
 
 const STARTERS = [
-  'Explain the difference between LLMs and traditional ML models',
-  'Write a Python function to safely parse JSON from a string',
-  'What are the best practices for prompt engineering?',
-  'Debug this: print("hello" + 42)',
+  'What is artificial intelligence in simple terms?',
+  'Give me 5 tips to be more productive',
+  'Explain quantum computing to a 10-year-old',
+  'Write a short story about a time traveler',
+  'What are the best ways to learn a new language?',
+  'Help me plan a healthy weekly meal plan',
 ]
 
 const TTS_LANGUAGES = [
