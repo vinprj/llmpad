@@ -966,13 +966,15 @@ export default function ChatPage() {
               <span className="font-display text-xl font-bold text-gray-900 dark:text-[#e0e0e0]">Pad</span>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={newConversation}
-                className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-[#ff9500]/10 text-[#ff9500] hover:bg-[#ff9500]/20 border border-[#ff9500]/20 transition-all"
-              >
-                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" d="M12 5v14M5 12h14"/></svg>
-                New
+              {user && (
+                <button
+                  onClick={newConversation}
+                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-[#ff9500]/10 text-[#ff9500] hover:bg-[#ff9500]/20 border border-[#ff9500]/20 transition-all"
+                >
+                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" d="M12 5v14M5 12h14"/></svg>
+                  New
               </button>
+              )}
             </div>
           </div>
 
