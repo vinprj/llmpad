@@ -1,6 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as yauzl from 'yauzl'
 
 export const maxDuration = 120 // Longer timeout for document processing
+
+// Helper to extract text content from ZIP buffer
+async function extractZipContent(buffer: Buffer): Promise<string> {
+  return new Promise((resolve, reject) => {
+    yauzl.fromBuffer(buffer, { lazyEntries: true }, (err, zipfile) => {
+      if (err || !zipfile) {
+        reject(err || new Error('Failed to open ZIP file'))
+        return
+      }
+
+      const contents: string[] = []
+      
+      zipfile.on('entry', (entry) => {
+        const fileName = entry.fileName
+        // Only process markdown or text files
+        if (fileName.endsWith('.md') || fileName.endsWith('.html') || fileName.endsWith('.txt')) {
+          zipfile.openReadStream(entry, (err, readStream) => {
+            if (err || !readStream) {
+              zipfile.readEntry()
+              return
+            }
+            
+            let content = ''
+            readStream.on('data', (chunk) => {
+              content += chunk.toString()
+            })
+            readStream.on('end', () => {
+              contents.push(`\n--- ${fileName} ---\n${content}`)
+              zipfile.readEntry()
+            })
+            readStream.on('error', (e) => {
+              console.log('[Vision] Error reading entry:', e)
+              zipfile.readEntry()
+            })
+          })
+        } else {
+          zipfile.readEntry()
+        }
+      })
+
+      zipfile.on('end', () => {
+        if (contents.length > 0) {
+          resolve(contents.join('\n'))
+        } else {
+          resolve('[No readable content found in ZIP]')
+        }
+      })
+
+      zipfile.on('error', reject)
+      zipfile.readEntry()
+    })
+  })
+}
 
 export async function POST(req: NextRequest) {
   const apiKey = req.headers.get('x-api-key')
@@ -174,21 +228,35 @@ export async function POST(req: NextRequest) {
     }
 
     // The result is a ZIP file containing the processed document
-    // For simplicity, we'll return the content directly if it's text
     const contentType = resultResponse.headers.get('content-type')
     
-    if (contentType?.includes('application/zip')) {
-      // Convert to base64 for client-side handling
+    if (contentType?.includes('application/zip') || resultUrl.includes('.zip')) {
+      // Extract content from ZIP
       const arrayBuffer = await resultResponse.arrayBuffer()
-      const base64 = Buffer.from(arrayBuffer).toString('base64')
+      const buffer = Buffer.from(arrayBuffer)
       
-      return NextResponse.json({
-        success: true,
-        jobId,
-        resultType: 'zip',
-        base64,
-        message: 'Document processed successfully. Download the ZIP file to extract the content.',
-      })
+      try {
+        const extractedContent = await extractZipContent(buffer)
+        console.log(`[Vision] Extracted ${extractedContent.length} characters from ZIP`)
+        
+        return NextResponse.json({
+          success: true,
+          jobId,
+          resultType: 'text',
+          content: extractedContent,
+        })
+      } catch (extractErr: any) {
+        console.log(`[Vision] ZIP extraction error: ${extractErr.message}`)
+        // Fallback: return base64
+        const base64 = buffer.toString('base64')
+        return NextResponse.json({
+          success: true,
+          jobId,
+          resultType: 'zip',
+          base64,
+          message: 'Document processed. Could not extract ZIP content.',
+        })
+      }
     } else {
       // Return text content directly
       const textContent = await resultResponse.text()

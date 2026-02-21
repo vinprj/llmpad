@@ -8,6 +8,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export interface DBConversation {
   id: string
   session_id: string
+  user_id?: string
   title: string
   messages: Array<{ id: string; role: 'user' | 'assistant'; content: string; timestamp: string }>
   created_at: string
