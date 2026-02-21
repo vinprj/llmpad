@@ -1400,7 +1400,7 @@ export default function ChatPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
                 {STARTERS.map(s => (
-                  <button key={s} onClick={() => handleSend(s)} disabled={!apiKey && !reasoningMode}
+                  <button key={s} onClick={() => handleSend(s)}
                     className="text-left p-3.5 rounded-xl border border-gray-200 dark:border-[#1f1f1f] hover:border-[#ff9500]/40 text-sm text-gray-600 dark:text-[#888] hover:text-gray-900 dark:hover:text-[#eee] transition-all bg-white dark:bg-[#0c0c0c] hover:bg-gray-50 dark:hover:bg-[#111] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                   >{s}</button>
                 ))}
@@ -1543,14 +1543,14 @@ export default function ChatPage() {
                   e.target.style.height = Math.min(e.target.scrollHeight, 180) + 'px'
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder={apiKey ? 'Send a message...' : 'Add API key to start...'}
-                rows={1} disabled={(!apiKey && !reasoningMode) || isStreaming || isProcessingVision}
+                placeholder="Send a message..."
+                rows={1} disabled={isStreaming}
                 className="flex-1 bg-transparent text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#666] focus:outline-none resize-none text-base leading-relaxed py-2.5 disabled:opacity-50"
                 style={{ maxHeight: '180px', minHeight: '44px' }}
               />
               <button
                 onClick={isStreaming ? () => abortRef.current?.abort() : () => handleSend()}
-                disabled={(!apiKey && !reasoningMode) || (!input.trim() && !isStreaming) || isProcessingVision}
+                disabled={!input.trim() && !isStreaming}
                 className={`flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-all shadow-sm ${
                   isStreaming
                     ? 'bg-red-500 text-white hover:bg-red-600'
