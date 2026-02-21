@@ -135,7 +135,7 @@ function RetryButton({ text, onClick }: { text: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-purple-100 dark:hover:bg-purple-900/40 hover:text-purple-500 dark:hover:text-purple-400 transition-all"
+      className="flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-orange-100 dark:hover:bg-orange-900/40 hover:text-orange-500 dark:hover:text-orange-400 transition-all"
       title="Retry with reasoning"
     >
       <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -1054,7 +1054,7 @@ export default function ChatPage() {
                       className={`group flex items-start justify-between gap-2 px-4 py-3 cursor-pointer transition-colors ${
                         currentConvId === conv.id
                           ? 'bg-[#ff9500]/8 border-r-2 border-[#ff9500]'
-                          : 'hover:bg-gray-50 dark:hover:bg-[#0f0f0f]'
+                          : 'hover:bg-gray-50 dark:hover:bg-[#1a1a1a]'
                       }`}
                     >
                       <div className="flex-1 min-w-0">
@@ -1073,7 +1073,7 @@ export default function ChatPage() {
                           <>
                             <div className="flex items-center gap-1.5">
                               {conv.branch_depth > 0 && (
-                                <span className="flex-shrink-0 text-[10px] px-1 py-0.5 rounded-full bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 font-medium" title={`Branched (depth ${conv.branch_depth})`}>
+                                <span className="flex-shrink-0 text-[10px] px-1 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 font-medium" title={`Branched (depth ${conv.branch_depth})`}>
                                   ⎔
                                 </span>
                               )}
@@ -1091,7 +1091,7 @@ export default function ChatPage() {
                         <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
                           <button
                             onClick={e => branchConversation(conv, e)}
-                            className="flex-shrink-0 p-1 rounded text-gray-300 dark:text-[#333] hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
+                            className="flex-shrink-0 p-1 rounded text-gray-300 dark:text-[#333] hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-all"
                             title="Branch"
                           >
                             <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -1339,7 +1339,7 @@ export default function ChatPage() {
               }}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
                 reasoningMode
-                  ? 'bg-purple-100 dark:bg-purple-500/20 border-purple-300 dark:border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-500/30'
+                  ? 'bg-orange-100 dark:bg-orange-500/20 border-orange-300 dark:border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-500/30'
                   : 'bg-gray-100 dark:bg-[#111] border-gray-200 dark:border-[#1a1a1a] text-gray-400 dark:text-[#555] hover:text-gray-600 dark:hover:text-[#888]'
               }`}
               title={openrouterKey ? 'Use OpenRouter for longer responses' : 'Add OpenRouter key in Settings'}
@@ -1457,7 +1457,7 @@ export default function ChatPage() {
                         <div className="flex items-center gap-2 mt-2">
                           <button
                             onClick={() => handleFork(currentConvId || '', idx)}
-                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] text-gray-500 dark:text-[#aaa] hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-100 dark:hover:bg-purple-900/50 hover:text-purple-600 dark:hover:text-purple-400 transition-all"
+                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] text-gray-500 dark:text-[#aaa] hover:border-orange-500 dark:hover:border-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/40 hover:text-orange-600 dark:hover:text-orange-400 transition-all"
                             title="Fork from this point"
                           >
                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -1543,7 +1543,7 @@ export default function ChatPage() {
               {/* Add Context Button */}
               <button
                 onClick={() => setShowContextModal(true)}
-                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-purple-100 dark:hover:bg-purple-900/50 hover:text-purple-500 dark:hover:text-purple-400 transition-all"
+                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-orange-100 dark:hover:bg-orange-900/40 hover:text-orange-500 dark:hover:text-orange-400 transition-all"
                 title="Add context from other chats"
               >
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -1715,7 +1715,7 @@ export default function ChatPage() {
                       <button
                         key={conv.id}
                         onClick={() => importContext(conv.id)}
-                        className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-[#2a2a2a] hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all"
+                        className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-[#2a2a2a] hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-all"
                       >
                         <div className="flex items-center gap-2">
                           {conv.branch_depth > 0 && <span className="text-[10px]">⎔</span>}
@@ -1744,8 +1744,8 @@ export default function ChatPage() {
                             key={msg.id}
                             className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                               selectedMessages.includes(msg.id)
-                                ? 'border-purple-400 dark:border-purple-500 bg-purple-50 dark:bg-purple-950/20'
-                                : 'border-gray-200 dark:border-[#2a2a2a] hover:border-purple-300 dark:hover:border-purple-600'
+                                ? 'border-orange-400 dark:border-orange-500 bg-orange-50 dark:bg-orange-950/20'
+                                : 'border-gray-200 dark:border-[#2a2a2a] hover:border-orange-300 dark:hover:border-orange-600'
                             }`}
                           >
                             <input
@@ -1758,11 +1758,11 @@ export default function ChatPage() {
                                   setSelectedMessages(prev => prev.filter(id => id !== msg.id))
                                 }
                               }}
-                              className="mt-1 w-4 h-4 text-purple-500 rounded border-gray-300 dark:border-[#444] focus:ring-purple-500"
+                              className="mt-1 w-4 h-4 text-orange-500 rounded border-gray-300 dark:border-[#444] focus:ring-orange-500"
                             />
                             <div className="flex-1 min-w-0">
                               <span className={`text-xs font-medium ${
-                                msg.role === 'user' ? 'text-[#ff9500]' : 'text-purple-500'
+                                msg.role === 'user' ? 'text-[#ff9500]' : 'text-orange-500'
                               }`}>
                                 {msg.role === 'user' ? 'You' : 'Assistant'}
                               </span>
@@ -1781,7 +1781,7 @@ export default function ChatPage() {
                         <button
                           onClick={confirmImportContext}
                           disabled={selectedMessages.length === 0}
-                          className="flex-1 py-2 px-4 text-sm font-medium text-black bg-purple-500 rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          className="flex-1 py-2 px-4 text-sm font-medium text-black bg-orange-500 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           Import {selectedMessages.length} message{selectedMessages.length !== 1 ? 's' : ''}
                         </button>
