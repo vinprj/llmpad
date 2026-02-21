@@ -627,7 +627,7 @@ export default function ChatPage() {
 
   const handleSend = useCallback(async (text?: string) => {
     const content = (text ?? input).trim()
-    if (!content || isStreaming) return
+    if (!content || isStreaming || (!apiKey && !reasoningMode)) return
 
     // Auth gate: prompt sign-in after first message for unauthenticated users
     if (!user) {
@@ -1395,6 +1395,118 @@ export default function ChatPage() {
                 <div className="w-14 h-14 rounded-2xl bg-[#ff9500]/10 border border-[#ff9500]/25 flex items-center justify-center mx-auto mb-4 text-xl">⚡</div>
                 <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-[#e0e0e0]">LLMPad</h2>
                 <p className="text-sm text-gray-500 dark:text-[#777] mt-2">
+                  {apiKey ? 'Start a conversation below' : 'Add your API key in Settings to begin'}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                {STARTERS.map(s => (
+                  <button key={s} onClick={() => handleSend(s)} disabled={!apiKey && !reasoningMode}
+                    className="text-left p-3.5 rounded-xl border border-gray-200 dark:border-[#1f1f1f] hover:border-[#ff9500]/40 text-sm text-gray-600 dark:text-[#888] hover:text-gray-900 dark:hover:text-[#eee] transition-all bg-white dark:bg-[#0c0c0c] hover:bg-gray-50 dark:hover:bg-[#111] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                  >{s}</button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-3xl mx-auto space-y-6">
+              {messages.map((msg, idx) => (
+                <div key={msg.id} className={`flex gap-3 msg-enter ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.role === 'assistant' && (
+                    <div className="w-7 h-7 rounded-lg bg-[#ff9500]/10 border border-[#ff9500]/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm">⚡</div>
+                  )}
+                  <div className={`group ${msg.role === 'user' ? 'max-w-[70%]' : 'flex-1 min-w-0'}`}>
+                    {msg.role === 'user' ? (
+                      <div className="bg-[#ff9500] text-black rounded-2xl rounded-tr-sm px-4 py-3 text-base leading-relaxed font-medium whitespace-pre-wrap">{msg.content}</div>
+                    ) : (
+                      <div className="text-base leading-relaxed">
+                        {msg.content ? (
+                          <div className="prose prose-gray dark:prose-invert prose-sm max-w-none
+                            prose-p:text-gray-800 dark:prose-p:text-[#d0d0d0] prose-p:leading-relaxed
+                            prose-headings:text-gray-900 dark:prose-headings:text-[#e0e0e0]
+                            prose-strong:text-gray-900 dark:prose-strong:text-[#e8e8e8]
+                            prose-a:text-[#ff9500] prose-a:no-underline hover:prose-a:underline
+                            prose-blockquote:border-[#ff9500]/40
+                            prose-hr:border-gray-200 dark:prose-hr:border-[#1f1f1f]
+                            prose-li:text-gray-800 dark:prose-li:text-[#d0d0d0]">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+                              code({ className, children, ...props }: any) {
+                                const match = /language-(\w+)/.exec(className || '')
+                                if (!match) return <code className="bg-amber-50 dark:bg-[#1a1a1a] text-amber-700 dark:text-[#ff9500] px-1.5 py-0.5 rounded text-sm font-mono" {...props}>{children}</code>
+                                return <CodeBlock language={match[1]}>{String(children)}</CodeBlock>
+                              },
+                              pre({ children }: any) { return <>{children}</> },
+                              table({ children }: any) { return <div className="overflow-x-auto my-3"><table className="text-sm border-collapse w-full">{children}</table></div> },
+                              th({ children }: any) { return <th className="border border-gray-200 dark:border-[#1f1f1f] bg-gray-50 dark:bg-[#0f0f0f] px-3 py-2 text-left text-gray-600 dark:text-[#888] font-semibold">{children}</th> },
+                              td({ children }: any) { return <td className="border border-gray-200 dark:border-[#1a1a1a] px-3 py-2 text-gray-700 dark:text-[#bbb]">{children}</td> },
+                            }}>
+                              {msg.content}
+                            </ReactMarkdown>
+                            {isStreaming && idx === messages.length - 1 && (
+                              <span className="inline-block w-2 h-[15px] bg-[#ff9500] rounded-sm cursor-blink ml-0.5 align-middle" />
+                            )}
+                          </div>
+                        ) : (
+                          isStreaming && idx === messages.length - 1 && (
+                            <span className="inline-block w-2 h-[15px] bg-[#ff9500] rounded-sm cursor-blink align-middle" />
+                          )
+                        )}
+                      </div>
+                    )}
+                    <div className={`flex flex-col gap-1.5 mt-1.5 text-xs text-gray-400 dark:text-[#555] opacity-0 group-hover:opacity-100 transition-opacity ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                      <span>{msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      {msg.content && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            onClick={() => handleFork(currentConvId || '', idx)}
+                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] text-gray-500 dark:text-[#aaa] hover:border-orange-500 dark:hover:border-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/40 hover:text-orange-600 dark:hover:text-orange-400 transition-all"
+                            title="Fork from this point"
+                          >
+                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 6l4 4-4 4" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 12h8" />
+                            </svg>
+                            <span>Fork</span>
+                          </button>
+
+                          <div className="flex items-center gap-1.5">
+                            <CopyButton text={msg.content} />
+                            <SpeakButton
+                              msgId={msg.id}
+                              text={msg.content}
+                              language={ttsLanguage}
+                              speaker={ttsSpeaker}
+                              isPlaying={speakingMsgId === msg.id}
+                              onClick={() => handleSpeak(msg.id, msg.content)}
+                            />
+                            {msg.role === 'user' && (
+                              <RetryButton text={msg.content} onClick={() => handleRetry(msg.content)} />
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {msg.role === 'user' && (
+                    <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#222] flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-semibold text-gray-500 dark:text-[#555]">V</div>
+                  )}
+                </div>
+              ))}
+
+              {error && (
+                <div className="mx-auto max-w-xl p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/30 rounded-xl text-sm text-red-600 dark:text-red-400 flex items-start gap-2">
+                  <span>⚠</span><span>{error}</span>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
+
+        {/* Input */}
+        <div className="border-t border-gray-200 dark:border-[#1a1a1a] bg-white dark:bg-[#090909] p-4 flex-shrink-0">
+          <div className="max-w-3xl mx-auto">
+            {!apiKey && (
+              <p className="text-center text-sm text-gray-400 dark:text-[#555] mb-3">
+                ⚡ Add your API key in <button onClick={() => { setShowSidebar(true); setSidebarTab('settings') }} className="text-[#ff9500] hover:underline">Settings</button> to start chatting
               </p>
             )}
 
@@ -1415,7 +1527,7 @@ export default function ChatPage() {
               {/* Attachment button */}
               <button
                 onClick={triggerFileUpload}
-                disabled={isStreaming}
+                disabled={(!apiKey && !reasoningMode) || isStreaming || isProcessingVision}
                 className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                   uploadedFile
                     ? 'bg-[#ff9500] text-black'
@@ -1447,8 +1559,8 @@ export default function ChatPage() {
                   e.target.style.height = Math.min(e.target.scrollHeight, 180) + 'px'
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder='Send a message...'
-                rows={1} disabled={isStreaming}
+                placeholder={apiKey ? 'Send a message...' : 'Add API key to start...'}
+                rows={1} disabled={(!apiKey && !reasoningMode) || isStreaming || isProcessingVision}
                 className="flex-1 bg-transparent text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#666] focus:outline-none resize-none text-base leading-relaxed py-2.5 disabled:opacity-50"
                 style={{ maxHeight: '180px', minHeight: '44px' }}
               />
