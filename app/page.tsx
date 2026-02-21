@@ -1524,22 +1524,6 @@ export default function ChatPage() {
                 ? 'bg-white dark:bg-[#0f0f0f] border-gray-300 dark:border-[#444] focus-within:border-[#ff9500] focus-within:ring-2 focus-within:ring-[#ff9500]/40'
                 : 'bg-gray-50 dark:bg-[#0f0f0f] border-gray-200 dark:border-[#161616]'
             }`}>
-              {/* Attachment button */}
-              <button
-                onClick={triggerFileUpload}
-                disabled={(!apiKey && !reasoningMode) || isStreaming || isProcessingVision}
-                className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                  uploadedFile
-                    ? 'bg-[#ff9500] text-black'
-                    : 'bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-200 dark:hover:bg-[#222] hover:text-[#ff9500]'
-                } disabled:opacity-40 disabled:cursor-not-allowed`}
-                title="Attach file (image or PDF)"
-              >
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                </svg>
-              </button>
-
               {/* Add Context Button */}
               <button
                 onClick={() => setShowContextModal(true)}
