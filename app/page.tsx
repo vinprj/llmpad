@@ -1309,7 +1309,7 @@ export default function ChatPage() {
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-[#111] border border-gray-200 dark:border-[#1a1a1a]">
               <span className={`w-1.5 h-1.5 rounded-full ${apiKey ? 'bg-[#ff9500]' : 'bg-gray-300 dark:bg-[#333]'}`} />
               <span className="text-xs font-mono text-gray-500 dark:text-[#777]">
-                {reasoningMode && openrouterKey ? reasoningModel : (apiKey ? (activeModel || 'select model') : 'no api key')}
+                {reasoningMode && openrouterKey ? reasoningModel : (activeModel || 'sarvam-m')}
               </span>
             </div>
             {/* Instructions toggle */}
