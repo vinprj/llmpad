@@ -12,4 +12,6 @@ export interface DBConversation {
   messages: Array<{ id: string; role: 'user' | 'assistant'; content: string; timestamp: string }>
   created_at: string
   updated_at: string
+  parent_conversation_id: string | null
+  branch_depth: number
 }

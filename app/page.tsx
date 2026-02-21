@@ -161,6 +161,12 @@ export default function ChatPage() {
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState('')
 
+  /* File upload for Vision */
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [isProcessingVision, setIsProcessingVision] = useState(false)
+  const [visionError, setVisionError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   /* Settings */
   const [apiKey, setApiKey] = useState('')
   const [openrouterKey, setOpenrouterKey] = useState('')
@@ -185,6 +191,11 @@ export default function ChatPage() {
   const [editingConvId, setEditingConvId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
 
+  /* Branching & Context */
+  const [showContextModal, setShowContextModal] = useState(false)
+  const [selectedMessages, setSelectedMessages] = useState<string[]>([])
+  const [importingConvId, setImportingConvId] = useState<string | null>(null)
+
   /* Theme */
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
@@ -204,6 +215,9 @@ export default function ChatPage() {
   const [ttsSpeaker, setTtsSpeaker] = useState('shubh')
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  /* Vision */
+  const [visionLanguage, setVisionLanguage] = useState('en-IN')
 
   /* Refs */
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -270,7 +284,7 @@ export default function ChatPage() {
     setConvLoading(true)
     const { data } = await supabase
       .from('llmpad_conversations')
-      .select('id, session_id, title, created_at, updated_at, messages')
+      .select('id, session_id, title, created_at, updated_at, messages, parent_conversation_id, branch_depth')
       .eq('session_id', sid)
       .order('updated_at', { ascending: false })
       .limit(50)
@@ -330,6 +344,65 @@ export default function ChatPage() {
     e.stopPropagation()
     setEditingConvId(conv.id)
     setEditingTitle(conv.title)
+  }
+
+  const branchConversation = async (conv: DBConversation, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!sessionId || !user) return
+    
+    const title = `${conv.title} (branch)`
+    const parentId = conv.parent_conversation_id || conv.id
+    const branchDepth = (conv.branch_depth || 0) + 1
+    
+    const { data } = await supabase
+      .from('llmpad_conversations')
+      .insert({ 
+        session_id: sessionId, 
+        title, 
+        messages: conv.messages,
+        parent_conversation_id: parentId,
+        branch_depth: branchDepth
+      })
+      .select()
+      .single()
+    
+    if (data) {
+      setConversations(prev => [data as DBConversation, ...prev])
+      // Load the new branched conversation
+      loadConversation(data as DBConversation)
+    }
+  }
+
+  const importContext = async (convId: string) => {
+    const conv = conversations.find(c => c.id === convId)
+    if (!conv) return
+    
+    // Show messages selection modal
+    setImportingConvId(convId)
+    setSelectedMessages([])
+    setShowContextModal(true)
+  }
+
+  const confirmImportContext = () => {
+    if (!importingConvId || selectedMessages.length === 0) return
+    
+    const conv = conversations.find(c => c.id === importingConvId)
+    if (!conv) return
+    
+    // Get selected messages
+    const importedMsgs = conv.messages.filter(m => selectedMessages.includes(m.id))
+    
+    // Add to current conversation messages
+    const newMsgs: Message[] = importedMsgs.map(m => ({
+      ...m,
+      id: generateId(),
+      timestamp: new Date(m.timestamp),
+    }))
+    
+    setMessages(prev => [...newMsgs, ...prev])
+    setShowContextModal(false)
+    setImportingConvId(null)
+    setSelectedMessages([])
   }
 
   const newConversation = () => {
@@ -661,6 +734,82 @@ export default function ChatPage() {
     textareaRef.current?.focus()
   }, [])
 
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setUploadedFile(file)
+      setVisionError('')
+    }
+  }
+
+  // Handle file upload to Vision API
+  const handleVisionUpload = async () => {
+    if (!uploadedFile || !apiKey) {
+      setVisionError('Please add your API key in Settings first')
+      return
+    }
+
+    setIsProcessingVision(true)
+    setVisionError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', uploadedFile)
+      formData.append('language', visionLanguage)
+
+      const response = await fetch('/api/vision', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+        },
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to process document')
+      }
+
+      // Add the vision result as a user message with the analysis
+      const fileName = uploadedFile.name
+      const resultContent = data.content || 'Document processed successfully. Please check the attachment.'
+
+      const userMsg: Message = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: `[Analyzed: ${fileName}]\n\n${resultContent}`,
+        timestamp: new Date(),
+      }
+
+      // Add assistant response with the full analysis
+      const assistantMsg: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: resultContent,
+        timestamp: new Date(),
+      }
+
+      setMessages(prev => [...prev, userMsg, assistantMsg])
+      setUploadedFile(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+
+    } catch (err: any) {
+      console.error('Vision error:', err)
+      setVisionError(err.message || 'Failed to process document')
+    } finally {
+      setIsProcessingVision(false)
+    }
+  }
+
+  // Trigger file input click
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click()
+  }
+
   /* ══════════════ RENDER ══════════════ */
   // Auth loading
   if (authLoading) {
@@ -956,6 +1105,28 @@ export default function ChatPage() {
                   <p className="text-xs text-gray-400 dark:text-[#444]">Voice for text-to-speech.</p>
                 </div>
 
+                {/* Vision Language */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">Vision Language</label>
+                  <select
+                    value={visionLanguage} onChange={e => setVisionLanguage(e.target.value)}
+                    className="w-full bg-gray-100 dark:bg-[#141414] border border-gray-300 dark:border-[#252525] rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500]/70 transition-colors cursor-pointer"
+                  >
+                    <option value="en-IN">English</option>
+                    <option value="hi-IN">Hindi (हिन्दी)</option>
+                    <option value="bn-IN">Bengali (বাংলা)</option>
+                    <option value="ta-IN">Tamil (தமிழ்)</option>
+                    <option value="te-IN">Telugu (తెలుగు)</option>
+                    <option value="mr-IN">Marathi (मराठी)</option>
+                    <option value="gu-IN">Gujarati (ગુજરાતી)</option>
+                    <option value="kn-IN">Kannada (ಕನ್ನಡ)</option>
+                    <option value="ml-IN">Malayalam (മലയാളം)</option>
+                    <option value="pa-IN">Punjabi (ਪੰਜਾਬੀ)</option>
+                    <option value="ur-IN">Urdu (اردو)</option>
+                  </select>
+                  <p className="text-xs text-gray-400 dark:text-[#444]">Language for document vision analysis.</p>
+                </div>
+
               </div>
               )}
 
@@ -1182,11 +1353,63 @@ export default function ChatPage() {
                 ⚡ Add your API key in <button onClick={() => { setShowSidebar(true); setSidebarTab('settings') }} className="text-[#ff9500] hover:underline">Settings</button> to start chatting
               </p>
             )}
+            
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,application/pdf"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            
             <div className={`flex gap-3 items-end rounded-2xl px-4 py-3 border transition-colors ${
               apiKey
                 ? 'bg-gray-50 dark:bg-[#0f0f0f] border-gray-300 dark:border-[#1e1e1e] focus-within:border-[#ff9500]/50'
                 : 'bg-gray-50 dark:bg-[#0f0f0f] border-gray-200 dark:border-[#161616]'
             }`}>
+              {/* Attachment button */}
+              <div className="flex-shrink-0 flex gap-2">
+                <button
+                  onClick={triggerFileUpload}
+                  disabled={(!apiKey && !reasoningMode) || isStreaming || isProcessingVision}
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all relative ${
+                    uploadedFile
+                      ? 'bg-[#ff9500] text-black'
+                      : 'bg-gray-200 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#666] hover:text-gray-700 dark:hover:text-[#888] hover:bg-gray-300 dark:hover:bg-[#222]'
+                  } disabled:opacity-40 disabled:cursor-not-allowed`}
+                  title="Attach file for vision analysis"
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                  {uploadedFile && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#ff9500] rounded-full border-2 border-white dark:border-[#090909]" />
+                  )}
+                </button>
+                
+                {/* Uploaded file preview / Process button */}
+                {uploadedFile && (
+                  <button
+                    onClick={handleVisionUpload}
+                    disabled={isProcessingVision}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-all disabled:opacity-50"
+                    title="Analyze with Sarvam Vision"
+                  >
+                    {isProcessingVision ? (
+                      <svg className="animate-spin" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                        <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+                      </svg>
+                    ) : (
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+              </div>
+              
               <textarea
                 ref={textareaRef} value={input}
                 onChange={e => {
@@ -1215,6 +1438,19 @@ export default function ChatPage() {
                 }
               </button>
             </div>
+            
+            {/* Vision error message */}
+            {visionError && (
+              <p className="text-center text-xs text-red-500 dark:text-red-400 mt-2">{visionError}</p>
+            )}
+            
+            {/* Uploaded file indicator */}
+            {uploadedFile && !isProcessingVision && (
+              <p className="text-center text-xs text-gray-400 dark:text-[#555] mt-2">
+                Attached: {uploadedFile.name} - Click the analyze button to process
+              </p>
+            )}
+            
             <p className="text-center text-xs text-gray-300 dark:text-[#333] mt-2">Enter to send · Shift+Enter for new line · Click ■ to stop</p>
           </div>
         </div>
