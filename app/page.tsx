@@ -1504,12 +1504,6 @@ export default function ChatPage() {
         {/* Input */}
         <div className="border-t border-gray-200 dark:border-[#1a1a1a] bg-white dark:bg-[#090909] p-4 flex-shrink-0">
           <div className="max-w-3xl mx-auto">
-            {!apiKey && (
-              <p className="text-center text-sm text-gray-400 dark:text-[#555] mb-3">
-                ⚡ Add your API key in <button onClick={() => { setShowSidebar(true); setSidebarTab('settings') }} className="text-[#ff9500] hover:underline">Settings</button> to start chatting
-              </p>
-            )}
-
             {/* Hidden file input */}
             <input
               ref={fileInputRef}
