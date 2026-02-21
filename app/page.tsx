@@ -704,7 +704,17 @@ export default function ChatPage() {
           {/* ─── Conversations tab ─── */}
           {sidebarTab === 'chats' && (
             <div className="flex-1 overflow-y-auto">
-              {convLoading ? (
+              {!user ? (
+                <div className="flex flex-col items-center justify-center h-32 gap-2 px-4 text-center">
+                  <p className="text-sm text-gray-400 dark:text-[#555]">Sign in to access</p>
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="text-xs text-[#ff9500] hover:text-[#ffad33] font-medium"
+                  >
+                    Sign In →
+                  </button>
+                </div>
+              ) : convLoading ? (
                 <div className="flex items-center justify-center h-20 text-sm text-gray-400 dark:text-[#444]">Loading…</div>
               ) : conversations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 gap-2 px-4 text-center">
@@ -750,7 +760,18 @@ export default function ChatPage() {
           {/* ─── Settings tab ─── */}
           {sidebarTab === 'settings' && (
             <div className="flex-1 overflow-y-auto">
-              <div className="px-4 py-4 space-y-5">
+              {!user ? (
+                <div className="flex flex-col items-center justify-center h-32 gap-2 px-4 text-center">
+                  <p className="text-sm text-gray-400 dark:text-[#555]">Sign in to access</p>
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="text-xs text-[#ff9500] hover:text-[#ffad33] font-medium"
+                  >
+                    Sign In →
+                  </button>
+                </div>
+              ) : (
+                <div className="px-4 py-4 space-y-5">
 
                 {/* API Key */}
                 <div className="space-y-1.5">
@@ -861,6 +882,7 @@ export default function ChatPage() {
                 </div>
 
               </div>
+              )}
 
               {/* Save */}
               <div className="px-4 pb-5">
