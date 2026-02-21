@@ -885,18 +885,20 @@ export default function ChatPage() {
               )}
 
               {/* Save */}
-              <div className="px-4 pb-5">
-                <button
-                  onClick={saveSettings}
-                  className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                    settingsSaved
-                      ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-500/30'
-                      : 'bg-[#ff9500] text-black hover:bg-[#ffad33]'
-                  }`}
-                >
-                  {settingsSaved ? '✓ Saved' : 'Save Settings'}
-                </button>
-              </div>
+              {user && (
+                <div className="px-4 pb-5">
+                  <button
+                    onClick={saveSettings}
+                    className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                      settingsSaved
+                        ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-500/30'
+                        : 'bg-[#ff9500] text-black hover:bg-[#ffad33]'
+                    }`}
+                  >
+                    {settingsSaved ? '✓ Saved' : 'Save Settings'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
