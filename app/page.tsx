@@ -212,7 +212,7 @@ export default function ChatPage() {
   const [model, setModel] = useState('sarvam-m')
   const [customModel, setCustomModel] = useState('')
   const [temperature, setTemperature] = useState(0.7)
-  const [instructions, setInstructions] = useState('You are a helpful, harmless, and honest AI assistant. Answer all questions clearly and concisely. If you are unsure about something, say so explicitly rather than guessing. Always provide reasoning before giving a final answer.')
+  const [instructions, setInstructions] = useState('You are a helpful, harmless, and honest AI assistant. Answer all questions clearly and concisely. If you are unsure about something, say so explicitly rather than guessing. Always provide reasoning before giving a final answer. Be concise and complete your thoughts in full before sending. Prioritize completing responses over verbose explanations.')
   const [settingsSaved, setSettingsSaved] = useState(false)
 
   /* Sidebar */
