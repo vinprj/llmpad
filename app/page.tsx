@@ -116,7 +116,7 @@ function ListenButton({ msgId, text, isPlaying, onClick }: { msgId: string; text
       } disabled:opacity-30`}
       title={isPlaying ? 'Stop' : 'Listen'}
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         {isPlaying ? (
           <>
             <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" />
@@ -124,9 +124,13 @@ function ListenButton({ msgId, text, isPlaying, onClick }: { msgId: string; text
           </>
         ) : (
           <>
-            <path d="M9 18V5l12-2v13" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="16" r="3" />
+            {/* Head profile with open mouth */}
+            <path d="M4 12c0-4 3-7 7-7 2 0 4 1 5 2l3-2v4h-1c1 1 2 3 2 5 0 2-1 4-3 5v3l-3-1c-1 0-2 .5-3 .5-4 0-7-3-7-7z" />
+            {/* Open mouth */}
+            <path d="M10 13h4" strokeWidth="2.5" />
+            {/* Sound waves */}
+            <path d="M18 9c.5.5 1 1.5 1 3s-.5 2.5-1 3" />
+            <path d="M20 7c1 1 1.5 2.5 1.5 5s-.5 4-1.5 5" />
           </>
         )}
       </svg>
