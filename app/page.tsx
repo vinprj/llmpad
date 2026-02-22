@@ -116,7 +116,7 @@ function SpeakButton({ msgId, text, language, speaker, isPlaying, onClick }: { m
       } disabled:opacity-30`}
       title={isPlaying ? 'Stop' : 'Listen'}
     >
-      <svg width="16" height="16" fill={isPlaying ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+      <svg width="16" height="16" fill={isPlaying ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
         {isPlaying ? (
           <>
             <rect x="6" y="4" width="4" height="16" rx="1" />
@@ -124,8 +124,10 @@ function SpeakButton({ msgId, text, language, speaker, isPlaying, onClick }: { m
           </>
         ) : (
           <>
-            <path d="M3 10v4c0 1.1.9 2 2 2h2a2 2 0 002-2v-2c0-1.1.9-2 2-2h2a2 2 0 002-2v-4a2 2 0 00-2-2H7a2 2 0 00-2 2v4z" />
-            <path d="M8 12a3 3 0 000 6c0 1.66 1.34 3 3 3s3-1.34 3-3" />
+            <path d="M12 1a7 7 0 00-7 7v5a3 3 0 003 3h2a3 3 0 003-3v-5a7 7 0 00-4-6.3V1" />
+            <path d="M12 13v4" />
+            <circle cx="8" cy="19" r="2" />
+            <circle cx="16" cy="19" r="2" />
           </>
         )}
       </svg>
@@ -585,7 +587,7 @@ export default function ChatPage() {
       return
     }
 
-    if (!apiKey || !text) return
+    if (!text) return
 
     setError('')
 
@@ -593,7 +595,7 @@ export default function ChatPage() {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, language: ttsLanguage, speaker: ttsSpeaker, apiKey }),
+        body: JSON.stringify({ text, language: ttsLanguage, speaker: ttsSpeaker }),
       })
 
       if (!res.ok) {
