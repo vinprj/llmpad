@@ -109,29 +109,21 @@ function ListenButton({ msgId, text, isPlaying, onClick }: { msgId: string; text
     <button
       onClick={onClick}
       disabled={!text}
-      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
+      className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 ${
         isPlaying
           ? 'bg-[#ff9500] text-white hover:bg-[#e68600]'
           : 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-[#ff9500]'
       } disabled:opacity-30`}
       title={isPlaying ? 'Stop' : 'Listen'}
     >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="transition-transform duration-200">
         {isPlaying ? (
-          <>
-            <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" />
-            <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" />
-          </>
+          <g key="pause">
+            <rect x="6" y="4" width="4" height="16" rx="1" />
+            <rect x="14" y="4" width="4" height="16" rx="1" />
+          </g>
         ) : (
-          <>
-            {/* Simple head profile */}
-            <path d="M3 11c0-3.5 2.5-6 6-6 2 0 3.5.5 4.5 1.5L17 4v4c1 1 1.5 2.5 1.5 4 0 2.5-1.5 4.5-3.5 5.5v3l-3-1" strokeWidth="1.5" />
-            {/* Mouth opening */}
-            <circle cx="6" cy="12" r="1.5" fill="currentColor" />
-            {/* Sound waves */}
-            <path d="M19 8c.7.8 1 1.8 1 3s-.3 2.2-1 3" />
-            <path d="M21 5c1.2 1.5 1.5 3 1.5 6s-.3 4.5-1.5 6" />
-          </>
+          <path key="play" d="M8 5v14l11-7z" />
         )}
       </svg>
     </button>
