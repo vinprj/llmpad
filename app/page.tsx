@@ -114,7 +114,7 @@ function SpeakButton({ msgId, text, language, speaker, isPlaying, onClick }: { m
           ? 'bg-[#ff9500] text-white hover:bg-[#e68600]'
           : 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-[#ff9500]'
       } disabled:opacity-30`}
-      title={isPlaying ? 'Stop' : 'Speak'}
+      title={isPlaying ? 'Stop' : 'Listen'}
     >
       <svg width="16" height="16" fill={isPlaying ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
         {isPlaying ? (
