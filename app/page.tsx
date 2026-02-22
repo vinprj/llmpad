@@ -216,7 +216,12 @@ export default function ChatPage() {
   const [settingsSaved, setSettingsSaved] = useState(false)
 
   /* Sidebar */
-  const [showSidebar, setShowSidebar] = useState(true)
+  const [showSidebar, setShowSidebar] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768
+    }
+    return true
+  })
   const [sidebarTab, setSidebarTab] = useState<'chats' | 'settings'>('chats')
   const [showInstructions, setShowInstructions] = useState(false)
 
