@@ -1266,28 +1266,6 @@ export default function ChatPage() {
                   <p className="text-xs text-gray-400 dark:text-[#444]">Voice for text-to-speech.</p>
                 </div>
 
-                {/* Vision Language */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">Vision Language</label>
-                  <select
-                    value={visionLanguage} onChange={e => setVisionLanguage(e.target.value)}
-                    className="w-full bg-gray-100 dark:bg-[#141414] border border-gray-300 dark:border-[#252525] rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:border-[#ff9500]/70 transition-colors cursor-pointer"
-                  >
-                    <option value="en-IN">English</option>
-                    <option value="hi-IN">Hindi (हिन्दी)</option>
-                    <option value="bn-IN">Bengali (বাংলা)</option>
-                    <option value="ta-IN">Tamil (தமிழ்)</option>
-                    <option value="te-IN">Telugu (తెలుగు)</option>
-                    <option value="mr-IN">Marathi (मराठी)</option>
-                    <option value="gu-IN">Gujarati (ગુજરાતી)</option>
-                    <option value="kn-IN">Kannada (ಕನ್ನಡ)</option>
-                    <option value="ml-IN">Malayalam (മലയാളം)</option>
-                    <option value="pa-IN">Punjabi (ਪੰਜਾਬੀ)</option>
-                    <option value="ur-IN">Urdu (اردو)</option>
-                  </select>
-                  <p className="text-xs text-gray-400 dark:text-[#444]">Language for document vision analysis.</p>
-                </div>
-
               </div>
               )}
 
@@ -1328,7 +1306,9 @@ export default function ChatPage() {
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-[#111] border border-gray-200 dark:border-[#1a1a1a]">
               <span className={`w-1.5 h-1.5 rounded-full ${apiKey ? 'bg-[#ff9500]' : 'bg-gray-300 dark:bg-[#333]'}`} />
               <span className="text-xs font-mono text-gray-500 dark:text-[#777]">
-                {reasoningMode ? reasoningModel : (activeModel || 'sarvam-m')}
+                {reasoningMode 
+                  ? (reasoningModel.includes('trinity') ? 'Trinity Large' : reasoningModel.includes('step') ? 'StepFun' : reasoningModel)
+                  : (activeModel || 'sarvam-m')}
               </span>
             </div>
             {/* Instructions toggle */}
@@ -1534,7 +1514,7 @@ export default function ChatPage() {
               className="hidden"
             />
 
-            <div className={`flex items-center gap-2.5 rounded-2xl px-4 py-3 border transition-all ${
+            <div className={`flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-4 py-2 sm:py-3 border transition-all ${
               apiKey
                 ? 'bg-white dark:bg-[#0f0f0f] border-gray-300 dark:border-[#444] focus-within:border-[#ff9500] focus-within:ring-2 focus-within:ring-[#ff9500]/40'
                 : 'bg-gray-50 dark:bg-[#0f0f0f] border-gray-200 dark:border-[#161616]'
