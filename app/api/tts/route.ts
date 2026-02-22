@@ -5,7 +5,8 @@ export const maxDuration = 60
 export async function POST(req: NextRequest) {
   const { text, language, speaker, apiKey } = await req.json()
 
-  if (!apiKey) {
+  const sarvamKey = apiKey || process.env.SARVAM_API_KEY
+  if (!sarvamKey) {
     return NextResponse.json({ error: 'API key is required' }, { status: 401 })
   }
   if (!text) {
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
     const response = await fetch('https://api.sarvam.ai/text-to-speech', {
       method: 'POST',
       headers: {
-        'api-subscription-key': apiKey,
+        'api-subscription-key': sarvamKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
