@@ -104,7 +104,7 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-function SpeakButton({ msgId, text, language, speaker, isPlaying, onClick }: { msgId: string; text: string; language: string; speaker: string; isPlaying: boolean; onClick: () => void }) {
+function ListenButton({ msgId, text, isPlaying, onClick }: { msgId: string; text: string; isPlaying: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -116,18 +116,17 @@ function SpeakButton({ msgId, text, language, speaker, isPlaying, onClick }: { m
       } disabled:opacity-30`}
       title={isPlaying ? 'Stop' : 'Listen'}
     >
-      <svg width="16" height="16" fill={isPlaying ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
         {isPlaying ? (
           <>
-            <rect x="6" y="4" width="4" height="16" rx="1" />
-            <rect x="14" y="7" width="4" height="10" rx="1" />
+            <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" />
+            <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" />
           </>
         ) : (
           <>
-            <path d="M12 1a7 7 0 00-7 7v5a3 3 0 003 3h2a3 3 0 003-3v-5a7 7 0 00-4-6.3V1" />
-            <path d="M12 13v4" />
-            <circle cx="8" cy="19" r="2" />
-            <circle cx="16" cy="19" r="2" />
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
           </>
         )}
       </svg>
@@ -1458,25 +1457,24 @@ export default function ChatPage() {
                       <span>{msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       {msg.content && (
                         <div className="flex items-center gap-2 mt-2">
-                          <button
-                            onClick={() => handleFork(currentConvId || '', idx)}
-                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] text-gray-500 dark:text-[#aaa] hover:border-orange-500 dark:hover:border-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/40 hover:text-orange-600 dark:hover:text-orange-400 transition-all"
-                            title="Fork from this point"
-                          >
-                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 6l4 4-4 4" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 12h8" />
-                            </svg>
-                            <span>Fork</span>
-                          </button>
-
                           <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleFork(currentConvId || '', idx)}
+                              className="flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 dark:bg-[#1a1a1a] text-gray-500 dark:text-[#888] hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-[#ff9500] transition-all"
+                              title="Fork from here"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="5" cy="6" r="2" />
+                                <circle cx="5" cy="18" r="2" />
+                                <circle cx="19" cy="12" r="2" />
+                                <path d="M7 6h6a4 4 0 014 4v0a4 4 0 01-4 4H7" />
+                                <path d="M7 18h6" />
+                              </svg>
+                            </button>
                             <CopyButton text={msg.content} />
-                            <SpeakButton
+                            <ListenButton
                               msgId={msg.id}
                               text={msg.content}
-                              language={ttsLanguage}
-                              speaker={ttsSpeaker}
                               isPlaying={speakingMsgId === msg.id}
                               onClick={() => handleSpeak(msg.id, msg.content)}
                             />
