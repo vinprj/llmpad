@@ -203,8 +203,8 @@ export default function ChatPage() {
 
   /* Settings */
   const [apiKey, setApiKey] = useState('')
-  const [openrouterKey, setOpenrouterKey] = useState('')
-  const [reasoningModel, setReasoningModel] = useState('arcee-ai/trinity-large-preview:free')
+  const [openrouterKey, setOpenrouterKey] = useState(process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || '')
+  const [reasoningModel, setReasoningModel] = useState(process.env.NEXT_PUBLIC_OPENROUTER_MODEL || 'arcee-ai/trinity-large-preview:free')
   const [reasoningMode, setReasoningMode] = useState(false)
   const [model, setModel] = useState('sarvam-m')
   const [customModel, setCustomModel] = useState('')
@@ -286,6 +286,11 @@ export default function ChatPage() {
     const cm = localStorage.getItem('sarvam_custom_model'); if (cm) setCustomModel(cm)
     const ork = localStorage.getItem('llmpad_openrouter_key'); if (ork) setOpenrouterKey(ork)
     const rm = localStorage.getItem('llmpad_reasoning_model'); if (rm) setReasoningModel(rm)
+    const rmode = localStorage.getItem('llmpad_reasoning_mode'); if (rmode) setReasoningMode(rmode === 'true')
+    // Auto-enable reasoning mode if env var key exists
+    if (process.env.NEXT_PUBLIC_OPENROUTER_API_KEY && !localStorage.getItem('llmpad_reasoning_mode')) {
+      setReasoningMode(true)
+    }
     const tl = localStorage.getItem('llmpad_tts_lang'); if (tl) setTtsLanguage(tl)
     const ts = localStorage.getItem('llmpad_tts_speaker'); if (ts) setTtsSpeaker(ts)
 
@@ -523,6 +528,7 @@ export default function ChatPage() {
     localStorage.setItem('sarvam_custom_model', customModel)
     localStorage.setItem('llmpad_openrouter_key', openrouterKey)
     localStorage.setItem('llmpad_reasoning_model', reasoningModel)
+    localStorage.setItem('llmpad_reasoning_mode', String(reasoningMode))
     localStorage.setItem('llmpad_tts_lang', ttsLanguage)
     localStorage.setItem('llmpad_tts_speaker', ttsSpeaker)
     setSettingsSaved(true)
@@ -1171,15 +1177,18 @@ export default function ChatPage() {
                   <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">OpenRouter API Key</label>
                   <input
                     type="password" value={openrouterKey} onChange={e => setOpenrouterKey(e.target.value)}
-                    placeholder="For reasoning mode (optional)"
+                    placeholder={process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ? "Using env var (edit to override)" : "For reasoning mode (optional)"}
                     className="w-full bg-gray-100 dark:bg-[#141414] border border-gray-300 dark:border-[#252525] rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#555] focus:outline-none focus:border-[#ff9500]/70 transition-colors font-mono"
                   />
                   {openrouterKey && <p className="text-xs text-gray-400 dark:text-[#555] font-mono">{maskKey(openrouterKey)}</p>}
+                  {process.env.NEXT_PUBLIC_OPENROUTER_API_KEY && !localStorage.getItem('llmpad_openrouter_key') && (
+                    <p className="text-xs text-green-600 dark:text-green-400">✓ Using server env var</p>
+                  )}
                   <p className="text-xs text-gray-400 dark:text-[#444]">Get free key at openrouter.ai</p>
                 </div>
 
-                {/* OpenRouter Model - show when reasoning mode is on */}
-                {reasoningMode && (
+                {/* OpenRouter Model - show when reasoning mode is on or env var exists */}
+                {(reasoningMode || process.env.NEXT_PUBLIC_OPENROUTER_API_KEY) && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-gray-500 dark:text-[#bbb] uppercase tracking-widest block">Reasoning Model</label>
                     <select
@@ -1325,7 +1334,13 @@ export default function ChatPage() {
             {/* Reasoning toggle - only show for signed in users */}
             {user && (
               <button
-                onClick={() => setReasoningMode(r => !r)}
+                onClick={() => {
+                  setReasoningMode(r => {
+                    const newValue = !r
+                    localStorage.setItem('llmpad_reasoning_mode', String(newValue))
+                    return newValue
+                  })
+                }}
                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
                   reasoningMode
                     ? 'bg-orange-100 dark:bg-orange-500/20 border-orange-300 dark:border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-500/30'
