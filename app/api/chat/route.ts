@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Mask API key in logs
-  const maskedKey = apiKey.length > 10 ? `${apiKey.slice(0, 6)}...${apiKey.slice(-4)}` : '***'
+  const maskedKey = sarvamKey.length > 10 ? `${sarvamKey.slice(0, 6)}...${sarvamKey.slice(-4)}` : '***'
   console.log(`[API] Model: ${model}, Messages: ${messages?.length || 0}, Temp: ${temperature}, Key: ${maskedKey}`)
 
   const allMessages = [
@@ -48,12 +48,14 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${sarvamKey}`,
+        'api-subscription-key': sarvamKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model,
         messages: allMessages,
         temperature: temperature ?? 0.7,
+        reasoning_effort: null,
         stream: true,
       }),
     })

@@ -1,0 +1,14 @@
+   ▲ Next.js 15.3.9
+   - Local:        http://localhost:5173
+   - Network:      http://192.168.0.101:5173
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1701ms
+ ○ Compiling /api/chat ...
+ ✓ Compiled /api/chat in 1007ms (364 modules)
+[2026-05-20T12:54:35.703Z] Request received
+[API] Model: sarvam-m, Messages: 1, Temp: 0.2, Key: sk_x5l...gboh
+[API] Sarvam fetch took 232ms, status: 200
+[API] Streaming started, total time: 239ms
+ POST /api/chat 200 in 1399ms
