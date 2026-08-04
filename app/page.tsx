@@ -17,7 +17,7 @@ interface Message {
 }
 
 const MODELS = [
-  { id: 'sarvam-m', label: 'Default (sarvam-m)' },
+  { id: 'sarvam-105b', label: 'Default (sarvam-105b)' },
   { id: 'custom', label: 'Custom model...' },
 ]
 
@@ -206,7 +206,7 @@ export default function ChatPage() {
   const [openrouterKey, setOpenrouterKey] = useState(process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || '')
   const [reasoningModel, setReasoningModel] = useState(process.env.NEXT_PUBLIC_OPENROUTER_MODEL || 'arcee-ai/trinity-large-preview:free')
   const [reasoningMode, setReasoningMode] = useState(false)
-  const [model, setModel] = useState('sarvam-m')
+  const [model, setModel] = useState('sarvam-105b')
   const [customModel, setCustomModel] = useState('')
   const [temperature, setTemperature] = useState(0.7)
   const [instructions, setInstructions] = useState('You are a helpful, harmless, and honest AI assistant. Answer all questions clearly and concisely. If you are unsure about something, say so explicitly rather than guessing. Always provide reasoning before giving a final answer. Be concise and complete your thoughts in full before sending. Prioritize completing responses over verbose explanations.')
@@ -280,7 +280,7 @@ export default function ChatPage() {
     setTheme(isDark ? 'dark' : 'light')
 
     const k = localStorage.getItem('sarvam_api_key'); if (k) setApiKey(k)
-    const m = localStorage.getItem('sarvam_model'); if (m) setModel(m)
+    const m = localStorage.getItem('sarvam_model'); if (m && m !== 'sarvam-m') setModel(m)
     const t = localStorage.getItem('sarvam_temp'); if (t) setTemperature(parseFloat(t))
     const s = localStorage.getItem('sarvam_instructions'); if (s) setInstructions(s)
     const cm = localStorage.getItem('sarvam_custom_model'); if (cm) setCustomModel(cm)
@@ -1314,7 +1314,7 @@ export default function ChatPage() {
               <span className="text-xs font-mono text-gray-500 dark:text-[#777]">
                 {reasoningMode 
                   ? (reasoningModel.includes('trinity') ? 'Trinity Large' : reasoningModel.includes('step') ? 'StepFun' : reasoningModel)
-                  : (activeModel || 'sarvam-m')}
+                  : (activeModel || 'sarvam-105b')}
               </span>
             </div>
             {/* Instructions toggle */}
